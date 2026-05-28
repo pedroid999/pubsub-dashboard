@@ -1,0 +1,39 @@
+# ---- Spec Kit -----------------------------------------------------------
+# Auto-regenerated registries; recreated by the `specify` CLI on install/sync.
+.specify/workflows/workflow-registry.json
+.specify/extensions/.registry
+
+# ---- Node / TypeScript --------------------------------------------------
+node_modules/
+dist/
+build/
+out/
+.vite/
+coverage/
+*.tsbuildinfo
+
+# ---- Logs & runtime ----------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- Env files ---------------------------------------------------------
+.env
+.env.local
+.env.*.local
+
+# ---- Test artifacts ----------------------------------------------------
+playwright-report/
+test-results/
+.playwright/
+
+# ---- OS / editor noise -------------------------------------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+!.vscode/extensions.json
