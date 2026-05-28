@@ -40,7 +40,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Verify the plan against each principle in `.specify/memory/constitution.md`:
+
+- **I. Local-First & Zero-Config** — Plan introduces no remote backend, telemetry, or non-`127.0.0.1` bind. First run requires only `gcloud` ADC.
+- **II. Test-First (NON-NEGOTIABLE)** — Plan schedules failing tests before implementation. Vitest ≥90% line+branch coverage budget honored. Playwright smoke covers any change to the `npx` boot path or UI.
+- **III. Type Safety End-to-End** — All new request/response shapes defined as shared `zod` schemas. No new `any`. `tsc --noEmit` remains clean.
+- **IV. Instant DX (One-Command UX)** — `npx pubsub-dashboard` cold-start budget < 3 s preserved. Any new error path produces an actionable, copy-pastable remediation message. README quickstart updated and CI-validated.
+- **V. Operational Excellence** — Structured `pino` logs with trace IDs added for new endpoints. No credentials or unredacted payloads logged. No new persistent state outside `~/.config/pubsub-dashboard/`. Each new dependency justified with alternatives in this plan.
+
+Any violation MUST be recorded in **Complexity Tracking** below with a justification and the simpler alternative that was rejected.
 
 ## Project Structure
 
