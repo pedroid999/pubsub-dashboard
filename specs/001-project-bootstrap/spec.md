@@ -4,13 +4,23 @@
 
 **Created**: 2026-05-29
 
-**Status**: Draft
+**Status**: Clarified (ready for `/speckit.plan`)
 
 **Input**: User description: "Bootstrap the Pub/Sub Dashboard project: a developer
 can run `npx pubsub-dashboard` on a clean machine with gcloud ADC configured and
 reach a working local dashboard in under 3 seconds, with the full Spec Kit
 quality gates (90% coverage, lint, typecheck, E2E smoke) enforced in CI from
 day one."
+
+## Clarifications
+
+### Session 2026-05-29
+
+- Q: When ADC is missing or expired on first run, what should the tool do? → A: ADC-only — exit non-zero with a single, copy-pastable `gcloud auth application-default login` remediation message. No browser OAuth fallback in v1.
+- Q: How is the active GCP project resolved on boot? → A: The tool MUST shell out to `gcloud config get-value project` as the *only* source of truth. The `GOOGLE_CLOUD_PROJECT` environment variable and the ADC quota project are NOT consulted in v1.
+- Q: What is the default local port and the policy when it is busy? → A: Default port `4321`, overridable via `--port <n>`. If the chosen port is in use, boot MUST fail loudly with a clear error naming the port and the override flag (no auto-discovery of a free port).
+- Q: What does the ≥90% line and branch coverage gate apply to? → A: All files under `src/**` (the application logic) MUST be covered ≥90% on both lines and branches. The following are explicitly excluded and listed in `vitest.config.ts`: `bin/**` (CLI wiring), `*.d.ts`, generated code, story files, and pure presentational React components without logic.
+- Q: Which operating systems does CI exercise on every PR? → A: `ubuntu-latest` and `macos-latest`. Windows is **not supported** in v1; the README MUST state this explicitly.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -37,7 +47,7 @@ configuration step is required.
 
 1. **Given** a clean machine with Node.js installed and `gcloud auth application-default login` already run, **When** the developer runs the single documented command, **Then** a local dashboard opens automatically in their default browser within 3 seconds of cold start and within 1 second of warm start, and the dashboard shows the GCP project ID inferred from ADC.
 2. **Given** the dashboard is running, **When** the developer presses Ctrl+C in the terminal, **Then** the local server stops cleanly within 1 second, releases its port, and leaves no orphan processes.
-3. **Given** the developer has never configured `gcloud`, **When** they run the single documented command, **Then** the terminal prints a single, copy-pastable remediation message naming the exact `gcloud` command they need to run, and exits with a non-zero status without opening a half-broken UI.
+3. **Given** the developer has never configured `gcloud` ADC, **When** they run the single documented command, **Then** the terminal prints a single, copy-pastable `gcloud auth application-default login` remediation message and exits with a non-zero status without opening a half-broken UI. No browser-based OAuth flow is offered.
 
 ---
 
@@ -124,10 +134,11 @@ pull request and fails the build if any step diverges from the README.
 
 ### Edge Cases
 
-- **Port already in use**: The default local port is occupied by another process. The tool MUST detect this before claiming success, fail with a clear message naming the conflicting port, and either offer an override flag or pick the next free port deterministically (the exact behaviour is documented in the README).
+- **Port already in use**: The default local port (`4321`) is occupied by another process. The tool MUST detect this before claiming success and exit non-zero with a clear error naming the conflicting port and pointing at the `--port <n>` override flag. The tool MUST NOT silently auto-pick a different port (deterministic URLs are required by the CI smoke test and the README quickstart).
 - **No default browser**: The host has no default browser registered. The tool MUST print the local URL prominently in the terminal and exit successfully so the developer can open it manually; it MUST NOT fail because of this.
 - **Stale or expired ADC credentials**: ADC exists but the access token is expired or revoked. The tool MUST surface the GCP-returned error verbatim along with the exact `gcloud` command to refresh credentials.
-- **No GCP project resolvable from ADC**: ADC is set but no quota project is configured. The tool MUST refuse to start with a remediation message pointing at `gcloud auth application-default set-quota-project`.
+- **No active gcloud project**: `gcloud config get-value project` returns empty (no active project set). The tool MUST refuse to start with a remediation message pointing at `gcloud config set project <PROJECT_ID>`.
+- **`gcloud` not on PATH**: The tool depends on `gcloud` to resolve the active project. If `gcloud` cannot be invoked, the tool MUST exit non-zero with a remediation message pointing at the Google Cloud SDK installation page.
 - **Node version below the supported minimum** (Node < 20 LTS): The bin entrypoint MUST detect this on the first line of execution and refuse to start with a clear "requires Node ≥ 20 LTS" message instead of crashing with an obscure syntax error.
 - **Slow network on first `npx` run**: First-time `npx` invocation may take longer than 3 seconds because npm is downloading the package. The 3-second budget applies to **warm cache** runs; the cold-cache case MUST still show progress so the developer knows the tool is alive.
 - **CI runner without a browser**: The end-to-end smoke test running in CI MUST exercise the server boot path and HTTP responses without actually launching a browser window, using a headless-capable test runner.
@@ -139,15 +150,15 @@ pull request and fails the build if any step diverges from the README.
 **Installation and boot**
 
 - **FR-001**: The tool MUST be installable and runnable via a single `npx` command without a separate "install" step.
-- **FR-002**: Running the tool MUST start a local HTTP server bound exclusively to the loopback interface (`127.0.0.1`) and MUST NOT bind to `0.0.0.0` or any external interface.
+- **FR-002**: Running the tool MUST start a local HTTP server bound exclusively to the loopback interface (`127.0.0.1`) on default port `4321` (overridable via `--port <n>`) and MUST NOT bind to `0.0.0.0` or any external interface. If the chosen port is in use, the tool MUST exit non-zero with an error message naming the port and the `--port` override flag, and MUST NOT silently fall back to another port.
 - **FR-003**: On successful boot, the tool MUST automatically open the dashboard in the user's default browser; if no default browser is available, the tool MUST print the URL and continue.
 - **FR-004**: The tool MUST stop cleanly on `SIGINT` (Ctrl+C) and `SIGTERM`, releasing its port within 1 second.
 
 **Authentication**
 
-- **FR-005**: The tool MUST authenticate against Google Cloud using Application Default Credentials produced by `gcloud auth application-default login`. No other credential mechanism is required for v1.
-- **FR-006**: The tool MUST resolve the active GCP project from ADC (or the explicit quota project) on startup and display it prominently in the UI.
-- **FR-007**: When ADC is missing, expired, or has no resolvable project, the tool MUST exit with a non-zero status and a single, copy-pastable remediation command.
+- **FR-005**: The tool MUST authenticate against Google Cloud using Application Default Credentials produced by `gcloud auth application-default login`. No other credential mechanism (browser OAuth, service-account key file, env-var token) is supported in v1.
+- **FR-006**: The tool MUST resolve the active GCP project on startup by invoking `gcloud config get-value project` and using its trimmed output as the single source of truth for the active project. The `GOOGLE_CLOUD_PROJECT` environment variable and the ADC quota project MUST NOT be consulted. The resolved project ID MUST be displayed prominently in the UI.
+- **FR-007**: When ADC is missing or expired, when `gcloud` is not on `PATH`, or when `gcloud config get-value project` returns empty, the tool MUST exit with a non-zero status and print a single, copy-pastable remediation command tailored to the specific failure (`gcloud auth application-default login`, install Google Cloud SDK, or `gcloud config set project <PROJECT_ID>` respectively).
 
 **Dashboard surface (minimal viable for bootstrap)**
 
@@ -167,14 +178,14 @@ pull request and fails the build if any step diverges from the README.
 **Quality gates (constitution Principle II)**
 
 - **FR-013**: The project MUST ship with a single "verify" command that runs, in order: linter, formatter check, type checker, unit and integration tests with coverage reporting, and an end-to-end smoke test of the boot path.
-- **FR-014**: Continuous integration MUST run the same "verify" command on every pull request and on every push to the default branch, and MUST block merges when any gate fails.
-- **FR-015**: The test suite MUST measure and enforce a minimum coverage threshold of 90% on both lines and branches, and CI MUST fail below that threshold.
+- **FR-014**: Continuous integration MUST run the same "verify" command on every pull request and on every push to the default branch, on a matrix of `ubuntu-latest` and `macos-latest` runners, and MUST block merges when any gate fails on any runner. Windows is explicitly not supported in v1 and is not part of the CI matrix.
+- **FR-015**: The test suite MUST measure and enforce a minimum coverage threshold of 90% on both lines and branches across all files under `src/**`. The following paths MUST be the *only* exclusions, declared explicitly in `vitest.config.ts`: `bin/**` (CLI wiring), `*.d.ts`, generated code, story files, and pure presentational React components without logic. CI MUST fail below the 90% threshold on either lines or branches.
 - **FR-016**: The end-to-end smoke test MUST exercise the cold-boot path of the documented one-command first run and verify that the dashboard responds successfully, without launching a real browser window in CI.
 
 **Documentation**
 
 - **FR-017**: The repository MUST contain a top-level README whose "Quickstart" section, executed verbatim on a clean machine with `gcloud` ADC configured, is sufficient to reach a working dashboard.
-- **FR-018**: The README MUST document the supported Node.js version, the required `gcloud` setup, the one-command first run, the contributor "verify" command, the project license, and a brief "what is in scope and what is not" statement.
+- **FR-018**: The README MUST document the supported Node.js version, the supported operating systems (macOS and Linux only; Windows explicitly not supported in v1), the required `gcloud` setup including `gcloud auth application-default login` and `gcloud config set project <PROJECT_ID>`, the one-command first run, the default port `4321` and the `--port` override, the contributor "verify" command, the project license, and a brief "what is in scope and what is not" statement.
 - **FR-019**: The CI pipeline MUST execute the README's Quickstart sequence end-to-end against the current commit and MUST fail the build if any step in the README is no longer accurate.
 
 **Project layout (extension points)**
@@ -195,14 +206,14 @@ pull request and fails the build if any step diverges from the README.
 - **SC-002**: On the same machine, the dashboard responds to its first authenticated API call within 1 second of being interactive.
 - **SC-003**: A developer who has never seen the project can reach a working dashboard, following only the README, in under 5 minutes from the moment they open the repository, assuming `gcloud` ADC is already configured.
 - **SC-004**: 100% of pull requests that violate any quality gate (lint, formatting, types, coverage threshold, smoke test, README quickstart) are blocked from merging by CI, with no manual override path documented.
-- **SC-005**: Line coverage and branch coverage are both at or above 90% on the default branch at all times; any drop below that threshold breaks the build.
+- **SC-005**: Line coverage and branch coverage are both at or above 90% across `src/**` (with the exclusions listed in FR-015) on the default branch at all times; any drop below that threshold on either metric breaks the build.
 - **SC-006**: Network capture of a one-hour interactive session reveals zero outbound connections to any host outside Google Cloud API endpoints.
 - **SC-007**: Inspection of all log output produced during a one-hour interactive session reveals zero occurrences of raw message payloads or credential material in non-verbose mode.
 - **SC-008**: The "verify" command runs to completion on the project maintainer's machine in under 60 seconds for the unit and integration portion and under 30 additional seconds for the end-to-end smoke test, so contributors actually run it locally before pushing.
 
 ## Assumptions
 
-- Target users are professional developers on macOS or Linux who already have a Node.js runtime installed and who have already run `gcloud auth application-default login` against the Google Cloud project they want to inspect. Windows support is in scope only to the extent that the chosen tooling supports it without additional effort; first-class Windows polish is out of scope for v1.
+- Target users are professional developers on **macOS or Linux** who already have Node.js (≥ 20 LTS) installed, who have run `gcloud auth application-default login` against the Google Cloud project they want to inspect, and who have set an active project via `gcloud config set project <PROJECT_ID>`. **Windows is explicitly not supported in v1**; it is out of the CI matrix and out of scope of the README quickstart. Windows support may be revisited in a later feature.
 - The constitution's locked technology stack (single Node process, Hono server, React+Vite client, `@google-cloud/pubsub`, `zod`, `pino`, `vitest`, Playwright) is the implementation substrate for this feature; the spec does not re-derive that choice but assumes it.
 - A single default local port is sufficient for v1; explicit multi-instance support (running two dashboards side by side against two projects) is out of scope and will be revisited only if real demand appears.
 - The first publish/subscribe/inspect features will be specified in separate `/speckit.specify` cycles immediately after this bootstrap ships, so the bootstrap deliberately leaves a clean extension point rather than pre-building those flows.
