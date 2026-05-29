@@ -21,13 +21,30 @@
   - **Fastify** — excellent runtime perf, but pulls in Avro/Pino-pretty and adds ~80 KB of deps; overkill for a loopback dev tool.
   - **Next.js / Remix** — eliminated by the constitution's single-process / no-SSR-needed constraint.
 
-## R2 — ADC and project resolution
+## R2 — ADC, project, and identity resolution
 
 - **Decision**: Use `google-auth-library` for ADC token resolution (`new GoogleAuth().getClient()` + `getAccessToken()`), and a direct `child_process.execFile('gcloud', ['config', 'get-value', 'project'])` shell-out for the active project.
-- **Rationale**: `google-auth-library` is the lowest-level officially supported package for ADC and is a transitive dep of `@google-cloud/pubsub` anyway; using it directly avoids pulling the full Pub/Sub SDK at boot. The clarification answer locks project resolution to `gcloud config get-value project` only, which has no library equivalent (the SDK reads `GOOGLE_CLOUD_PROJECT` and ADC quota project, which we are explicitly forbidden from using).
+- **Rationale**: `google-auth-library` is the lowest-level officially supported package for ADC; using it directly avoids pulling the full Pub/Sub SDK at boot. The clarification answer locks project resolution to `gcloud config get-value project` only, which has no library equivalent (the SDK reads `GOOGLE_CLOUD_PROJECT` and ADC quota project, which we are explicitly forbidden from using).
 - **Alternatives considered**:
   - **`@google-cloud/pubsub` Auth helpers** — they exist but pull the whole Pub/Sub client (~3 MB of deps) before any Pub/Sub feature exists; deferred to feature 002.
   - **`gcloud auth application-default print-access-token`** — works but spawns a process on every API call; we cache via `google-auth-library` instead.
+
+### Identity resolution (FR-008)
+
+The dashboard MUST display the identity behind the active credentials. The two
+ADC flavours behave differently:
+
+- **Service-account ADC** → `getCredentials().client_email` returns the SA email directly.
+- **User ADC** → `client_email` is empty; the actual user email is only obtainable via Google's userinfo endpoint.
+
+- **Decision**: At boot, resolve identity in this order:
+  1. If `getCredentials().client_email` is non-empty, use it (service account case).
+  2. Otherwise, GET `https://www.googleapis.com/oauth2/v3/userinfo` once with the access token, parse `email`, cache for the lifetime of the session.
+  3. If the userinfo call fails for any reason, fall back to the literal string `"adc:user (email unresolved)"` and log the error at `warn` level. Boot does **not** fail.
+- **Rationale**: The userinfo endpoint is `*.googleapis.com` — fully constitutional under Principle I (no non-Google outbound). One call at boot, cached, costs ~50 ms and gives the user the email they expect to see. Falling back instead of failing keeps boot resilient: a transient userinfo failure should not block a developer from using the dashboard.
+- **Alternatives considered**:
+  - **Always show literal `"adc:user"`** — cheaper but worse UX; the developer cannot tell which Google account is currently active, which defeats half of FR-008.
+  - **Use the ID token claim** — only available if the ADC flow already minted an ID token, which is not guaranteed for `application-default login`.
 
 ## R3 — React + Vite served by Hono
 

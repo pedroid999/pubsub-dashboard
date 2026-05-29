@@ -26,7 +26,7 @@ cycles, and ships zero remote-network surface beyond Google Cloud APIs.
 
 **Primary Dependencies**:
 
-- Server: `hono` (router/middleware), `@google-cloud/pubsub` (Pub/Sub client placeholder for later features; v1 only uses Auth library transitively), `google-auth-library` (ADC resolution), `pino` (structured logging), `zod` (shared schemas), `open` (browser launch)
+- Server: `hono` (router/middleware), `google-auth-library` (ADC resolution + userinfo lookup), `pino` (structured logging), `zod` (shared schemas), `open` (browser launch). **Note**: `@google-cloud/pubsub` is intentionally NOT a v1 runtime dependency — it lands with feature 002 (publish/subscribe). See `research.md` R2 + R13 for rationale.
 - Client: `react@18`, `react-dom@18`, `vite`, `@vitejs/plugin-react`, `tailwindcss`, `@radix-ui/*` via `shadcn/ui` primitives, `lucide-react`
 - Tooling: `vitest`, `@vitest/coverage-v8`, `@playwright/test`, `eslint`, `@typescript-eslint/*`, `prettier`, `tsx` (dev runner)
 

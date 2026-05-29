@@ -33,7 +33,7 @@ flag and pointing at `--help`.
 | `2` | CLI argument validation failure (unknown flag, invalid `--port`). |
 | `10` | Node version < 20 LTS (detected by `bin/pubsub-dashboard.mjs` *before* requiring any source). |
 | `11` | `gcloud` not on `PATH`. |
-| `12` | ADC missing or expired. |
+| `12` | ADC missing or expired. The verbatim GCP error MUST be logged at `error` level via pino *before* the canonical stderr line is printed (per `spec.md` "Stale or expired ADC credentials" edge case). |
 | `13` | `gcloud config get-value project` returned empty. |
 | `14` | Configured port already in use. |
 

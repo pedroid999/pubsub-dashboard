@@ -97,8 +97,10 @@ to be meaningful.
 
 ### Auth + project resolution
 
-- [ ] T033 [P] [US1] Test `tests/unit/auth.adc.test.ts`: success path returns an authenticated client + identity; missing/expired ADC throws `ADCMissingError` mapped to exit code 12 with remediation `gcloud auth application-default login`.
+- [ ] T033 [P] [US1] Test `tests/unit/auth.adc.test.ts`: success path returns an authenticated client + identity; missing/expired ADC throws `ADCMissingError` mapped to exit code 12 with remediation `gcloud auth application-default login`. The test also asserts that the verbatim GCP error is logged at `error` level via pino BEFORE the canonical stderr line is printed (per `spec.md` edge case + `contracts/cli.md` exit-12 note).
 - [ ] T034 [US1] Implement `src/server/auth/adc.ts` using `google-auth-library`. *Dependency: T033.*
+- [ ] T034b [P] [US1] Test `tests/unit/auth.identity.test.ts`: per `research.md` R2 *Identity resolution*, given a service-account credential with non-empty `client_email`, returns it directly (no userinfo call); given a user credential with empty `client_email`, calls `https://www.googleapis.com/oauth2/v3/userinfo` exactly once with the access token, parses `email`, caches it; on userinfo failure (network error, 401, malformed body), returns the literal `"adc:user (email unresolved)"` and logs a `warn`. Asserts userinfo is the ONLY non-`*.googleapis.com` host avoided (i.e., the URL hits googleapis.com, satisfying Principle I).
+- [ ] T034c [US1] Implement `src/server/auth/identity.ts` exporting `resolveIdentity(authClient): Promise<string>` per the order in R2. *Dependency: T034b.*
 - [ ] T035 [P] [US1] Test `tests/unit/auth.project.test.ts`: `getActiveProject()` shells out to `gcloud config get-value project` (mocked `execFile`), trims output, validates regex; empty result throws `NoActiveProjectError` (exit 13); `ENOENT` for gcloud → `GcloudMissingError` (exit 11). MUST NOT consult `GOOGLE_CLOUD_PROJECT` env var (test asserts env access via spy).
 - [ ] T036 [US1] Implement `src/server/auth/project.ts`. *Dependency: T035.*
 - [ ] T037 [P] [US1] Test `tests/unit/auth.remediation.test.ts`: each error class maps to its documented stderr line (verbatim strings from `contracts/cli.md`).
@@ -250,6 +252,7 @@ to be meaningful.
 - [ ] T091 Set `package.json#version` to `0.1.0`.
 - [ ] T092 Create `CHANGELOG.md` with the v0.1.0 entry referencing the four user stories.
 - [ ] T093 Update `README.md` "Supported OS" note (FR-018) and "What's in scope and what's not" section (publish/subscribe/JSON compose explicitly out of v1 scope per spec, planned in feature 002+).
+- [ ] T093b Write `docs/extension-points.md` documenting how feature 002+ adds new dashboard sections without modifying the boot path or the auth resolution path (FR-020): the documented surface is **(a)** add a new file under `src/server/routes/<feature>.ts`, **(b)** add zod schemas under `src/server/schemas/<feature>.ts`, **(c)** register the route in `createApp()`, **(d)** add a React component under `src/client/components/<Feature>.tsx`. Forbidden: editing `bin/`, `src/server/boot.ts`, or `src/server/auth/**`. Add an ESLint `no-restricted-imports` rule in `eslint.config.js` (extending T073) that forbids any file outside `src/server/auth/**` from importing `src/server/auth/adc.ts` or `src/server/auth/project.ts` internals (only `src/server/auth/index.ts` re-exports may be consumed). Add a unit test in `tests/unit/lint.extension-rule.test.ts` that asserts the lint rule catches a fixture violating it.
 - [ ] T094 Final dependency audit: `npm audit --omit=dev` returns zero high/critical; every runtime dep present in the published tarball is justified in `research.md` R13.
 - [ ] T095 Tag `v0.1.0`, open PR `001-project-bootstrap → main`; merge gated by `verify (ubuntu-latest)`, `verify (macos-latest)`, `readme-quickstart`.
 
@@ -314,12 +317,12 @@ Each PR is itself gated by the gates landed in earlier PRs; for PRs #1–#2, the
 
 - **Setup (Phase 1)**: 12 tasks
 - **Foundational (Phase 2)**: 20 tasks
-- **US1 (Phase 3)**: 25 tasks
+- **US1 (Phase 3)**: 27 tasks (T033..T057 + T034b, T034c)
 - **US3 (Phase 4)**: 14 tasks
 - **US2 (Phase 5)**: 9 tasks
 - **US4 (Phase 6)**: 6 tasks
-- **Polish (Phase 7)**: 9 tasks
-- **Total**: **95 tasks**
+- **Polish (Phase 7)**: 10 tasks (T087..T095 + T093b)
+- **Total**: **98 tasks** (95 sequential T001..T095 + T034b, T034c, T093b inserted by `/speckit.analyze` remediation for F2 and F3)
 
 **Independent test criteria per story**:
 

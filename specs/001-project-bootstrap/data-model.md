@@ -21,7 +21,7 @@ by trace-ID updates on each backend operation, destroyed at shutdown.
 | Field | Type | Notes |
 |---|---|---|
 | `projectId` | `string` (non-empty) | Trimmed output of `gcloud config get-value project`. Required. |
-| `identity` | `string` (non-empty) | Email reported by `google-auth-library` ADC client (`getCredentials().client_email` for service accounts, `getClient().getRequestHeaders()` → introspect for user creds). Required. |
+| `identity` | `string` (non-empty) | Resolved at boot per `research.md` R2 *Identity resolution*: SA email from `getCredentials().client_email` if non-empty, else `email` from a one-time call to `https://www.googleapis.com/oauth2/v3/userinfo`, else literal fallback `"adc:user (email unresolved)"`. Cached for the session lifetime. Required (always non-empty thanks to the fallback). |
 | `bindAddress` | `'127.0.0.1'` (literal) | Hard-coded by FR-002. |
 | `port` | `number` (integer, 1..65535) | Default `4321`; overridable via `--port`. |
 | `startedAt` | ISO-8601 timestamp string | Set once at boot. |
