@@ -29,18 +29,18 @@ to be meaningful.
 
 **Purpose**: Project skeleton, tooling configs (rules not yet enforced — those land in US2). No story label.
 
-- [ ] T001 Create directory structure: `bin/`, `src/server/{auth,routes,middleware,schemas}`, `src/client/{components/ui,lib}`, `src/shared/`, `src/cli/`, `tests/{unit,integration,e2e}/`, `scripts/`, `.github/workflows/`.
-- [ ] T002 [P] Create `package.json` with: `"type":"module"`, `"engines":{"node":">=20.0.0"}`, `"bin":{"pubsub-dashboard":"bin/pubsub-dashboard.mjs"}`, dependency list from `plan.md` (hono, google-auth-library, pino, zod, open, react, react-dom), devDependencies (vite, @vitejs/plugin-react, vitest, @vitest/coverage-v8, @playwright/test, typescript, eslint, @typescript-eslint/*, prettier, tsx, tailwindcss, @radix-ui/* via shadcn primitives, lucide-react), scripts placeholders (`dev`, `build`, `verify`).
-- [ ] T003 [P] Create `tsconfig.json` (base: `strict:true`, `noImplicitAny:true`, `strictNullChecks:true`, `noUncheckedIndexedAccess:true`, `target:ES2022`, `module:NodeNext`, `moduleResolution:NodeNext`, `paths:{"@server/*":["src/server/*"], "@shared/*":["src/shared/*"]}`).
-- [ ] T004 [P] Create `tsconfig.server.json` (extends base, `lib:["ES2022"]`, `types:["node","vitest/globals"]`).
-- [ ] T005 [P] Create `tsconfig.client.json` (extends base, `lib:["ES2022","DOM","DOM.Iterable"]`, `jsx:"react-jsx"`).
-- [ ] T006 [P] Create `vite.config.ts` with `@vitejs/plugin-react` and `build.outDir = 'dist/client'`.
-- [ ] T007 [P] Create `vitest.config.ts` (initial — coverage thresholds set to 0; final thresholds wired in T064 under US2 to keep gates pre-implementation green).
-- [ ] T008 [P] Create `playwright.config.ts` configured for `APIRequestContext`-only tests (no browser launch).
-- [ ] T009 [P] Create `eslint.config.js` (flat config) scaffolded but with no rules yet (final ruleset lands in T065 under US2).
-- [ ] T010 [P] Create `.prettierrc` with project formatting choices.
-- [ ] T011 [P] Create `tailwind.config.ts`, `postcss.config.cjs`, and `src/client/styles.css` (Tailwind directives only).
-- [ ] T012 Run `npm install` to materialize the lockfile and `node_modules`.
+- [x] T001 Create directory structure: `bin/`, `src/server/{auth,routes,middleware,schemas}`, `src/client/{components/ui,lib}`, `src/shared/`, `src/cli/`, `tests/{unit,integration,e2e}/`, `scripts/`, `.github/workflows/`.
+- [x] T002 [P] Create `package.json` with: `"type":"module"`, `"engines":{"node":">=20.0.0"}`, `"bin":{"pubsub-dashboard":"bin/pubsub-dashboard.mjs"}`, dependency list from `plan.md` (hono, google-auth-library, pino, zod, open, react, react-dom), devDependencies (vite, @vitejs/plugin-react, vitest, @vitest/coverage-v8, @playwright/test, typescript, eslint, @typescript-eslint/*, prettier, tsx, tailwindcss, @radix-ui/* via shadcn primitives, lucide-react), scripts placeholders (`dev`, `build`, `verify`).
+- [x] T003 [P] Create `tsconfig.json` (base: `strict:true`, `noImplicitAny:true`, `strictNullChecks:true`, `noUncheckedIndexedAccess:true`, `target:ES2022`, `module:NodeNext`, `moduleResolution:NodeNext`, `paths:{"@server/*":["src/server/*"], "@shared/*":["src/shared/*"]}`).
+- [x] T004 [P] Create `tsconfig.server.json` (extends base, `lib:["ES2022"]`, `types:["node","vitest/globals"]`).
+- [x] T005 [P] Create `tsconfig.client.json` (extends base, `lib:["ES2022","DOM","DOM.Iterable"]`, `jsx:"react-jsx"`).
+- [x] T006 [P] Create `vite.config.ts` with `@vitejs/plugin-react` and `build.outDir = 'dist/client'`.
+- [x] T007 [P] Create `vitest.config.ts` (initial — coverage thresholds set to 0; final thresholds wired in T064 under US2 to keep gates pre-implementation green).
+- [x] T008 [P] Create `playwright.config.ts` configured for `APIRequestContext`-only tests (no browser launch).
+- [x] T009 [P] Create `eslint.config.js` (flat config) scaffolded but with no rules yet (final ruleset lands in T065 under US2).
+- [x] T010 [P] Create `.prettierrc` with project formatting choices.
+- [x] T011 [P] Create `tailwind.config.ts`, `postcss.config.cjs`, and `src/client/styles.css` (Tailwind directives only).
+- [x] T012 Run `npm install` to materialize the lockfile and `node_modules`.
 
 **Checkpoint**: `tsc --noEmit` runs (on an empty src tree) without errors; `npm run build` is wired but not yet meaningful.
 
@@ -54,38 +54,38 @@ to be meaningful.
 
 ### Shared constants & guards
 
-- [ ] T013 [P] Unit test in `tests/unit/shared.env.test.ts`: `assertSupportedNode(version)` returns ok for `v20.0.0`/`v22.x`, throws with exit-code-10 message for `v18.x`.
-- [ ] T014 [P] Implement `src/shared/env.ts` exporting `MIN_NODE_MAJOR = 20` and `assertSupportedNode(version: string): void`.
-- [ ] T015 [P] Unit test in `tests/unit/shared.port.test.ts`: `DEFAULT_PORT === 4321`, `BIND_ADDRESS === '127.0.0.1'`.
-- [ ] T016 [P] Implement `src/shared/port.ts` exporting `DEFAULT_PORT`, `BIND_ADDRESS`.
+- [x] T013 [P] Unit test in `tests/unit/shared.env.test.ts`: `assertSupportedNode(version)` returns ok for `v20.0.0`/`v22.x`, throws with exit-code-10 message for `v18.x`.
+- [x] T014 [P] Implement `src/shared/env.ts` exporting `MIN_NODE_MAJOR = 20` and `assertSupportedNode(version: string): void`.
+- [x] T015 [P] Unit test in `tests/unit/shared.port.test.ts`: `DEFAULT_PORT === 4321`, `BIND_ADDRESS === '127.0.0.1'`.
+- [x] T016 [P] Implement `src/shared/port.ts` exporting `DEFAULT_PORT`, `BIND_ADDRESS`.
 
 ### Zod schemas (single source of truth — contracts/schemas.md)
 
-- [ ] T017 [P] Test `tests/unit/schemas.session.test.ts` covering T-SCHEMA-010..013.
-- [ ] T018 [P] Implement `src/server/schemas/session.ts` (`SessionSchema`, `Session` type).
-- [ ] T019 [P] Test `tests/unit/schemas.health.test.ts` covering T-SCHEMA-020..021.
-- [ ] T020 [P] Implement `src/server/schemas/health.ts` (`HealthResponseSchema`).
-- [ ] T021 [P] Test `tests/unit/schemas.diagnostics.test.ts` covering T-SCHEMA-030..033.
-- [ ] T022 [P] Implement `src/server/schemas/diagnostics.ts` (`DiagnosticsRecordSchema`, `DiagnosticsListSchema`).
-- [ ] T023 [P] Test `tests/unit/schemas.errors.test.ts` covering T-SCHEMA-040..042.
-- [ ] T024 [P] Implement `src/server/schemas/errors.ts` (`ErrorCode`, `ErrorResponseSchema`).
-- [ ] T025 [P] Test `tests/unit/schemas.preferences.test.ts` covering T-SCHEMA-060..061.
-- [ ] T026 [P] Implement `src/server/schemas/preferences.ts` (`PreferencesSchema`).
+- [x] T017 [P] Test `tests/unit/schemas.session.test.ts` covering T-SCHEMA-010..013.
+- [x] T018 [P] Implement `src/server/schemas/session.ts` (`SessionSchema`, `Session` type).
+- [x] T019 [P] Test `tests/unit/schemas.health.test.ts` covering T-SCHEMA-020..021.
+- [x] T020 [P] Implement `src/server/schemas/health.ts` (`HealthResponseSchema`).
+- [x] T021 [P] Test `tests/unit/schemas.diagnostics.test.ts` covering T-SCHEMA-030..033.
+- [x] T022 [P] Implement `src/server/schemas/diagnostics.ts` (`DiagnosticsRecordSchema`, `DiagnosticsListSchema`).
+- [x] T023 [P] Test `tests/unit/schemas.errors.test.ts` covering T-SCHEMA-040..042.
+- [x] T024 [P] Implement `src/server/schemas/errors.ts` (`ErrorCode`, `ErrorResponseSchema`).
+- [x] T025 [P] Test `tests/unit/schemas.preferences.test.ts` covering T-SCHEMA-060..061.
+- [x] T026 [P] Implement `src/server/schemas/preferences.ts` (`PreferencesSchema`).
 
 ### CLI argument parsing
 
-- [ ] T027 [P] Test `tests/unit/cli.args.test.ts` covering T-SCHEMA-050..053 plus unknown-flag rejection.
-- [ ] T028 [P] Implement `src/cli/args.ts` using `node:util.parseArgs` + `CliArgsSchema`.
+- [x] T027 [P] Test `tests/unit/cli.args.test.ts` covering T-SCHEMA-050..053 plus unknown-flag rejection.
+- [x] T028 [P] Implement `src/cli/args.ts` using `node:util.parseArgs` + `CliArgsSchema`.
 
 ### Logging + trace middleware
 
-- [ ] T029 [P] Test `tests/unit/middleware.trace.test.ts`: middleware mints UUIDv4 `traceId`, attaches it via `pino.child`, sets `x-trace-id` response header.
-- [ ] T030 Implement `src/server/middleware/trace.ts` (pino factory + per-request middleware). *Dependency: T029 must fail first.*
+- [x] T029 [P] Test `tests/unit/middleware.trace.test.ts`: middleware mints UUIDv4 `traceId`, attaches it via `pino.child`, sets `x-trace-id` response header.
+- [x] T030 Implement `src/server/middleware/trace.ts` (pino factory + per-request middleware). *Dependency: T029 must fail first.*
 
 ### Hono app factory
 
-- [ ] T031 [P] Test `tests/unit/server.app.test.ts`: `createApp()` returns a Hono instance, attaches trace middleware, exposes no routes yet (404 on `/api/health`).
-- [ ] T032 Implement `src/server/app.ts` exporting `createApp(deps): Hono`. *Dependency: T031.*
+- [x] T031 [P] Test `tests/unit/server.app.test.ts`: `createApp()` returns a Hono instance, attaches trace middleware, exposes no routes yet (404 on `/api/health`).
+- [x] T032 Implement `src/server/app.ts` exporting `createApp(deps): Hono`. *Dependency: T031.*
 
 **Checkpoint**: All schemas parsed/validated; CLI parses argv; app factory builds an empty Hono app with trace middleware; full test suite green; coverage on `src/**` ≥ what's present.
 
