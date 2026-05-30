@@ -223,9 +223,9 @@ to be meaningful.
 
 **Goal**: README's Quickstart section is verbatim what CI executes; modifying the boot path or auth requirements without updating the README breaks CI.
 
-- [ ] T081 [P] [US4] Test `tests/unit/scripts.extract-readme-quickstart.test.ts`: extract function returns the `bash quickstart` fence body; throws if the fence is missing; throws if multiple fences.
-- [ ] T082 [US4] Implement `scripts/extract-readme-quickstart.mjs`: parses `README.md`, writes the fence body to a temp file, returns the path; CLI flag `--print` to stdout-dump for CI use. *Dependency: T081.*
-- [ ] T083 [US4] Write `README.md` derived from `specs/001-project-bootstrap/quickstart.md`:
+- [x] T081 [P] [US4] Test `tests/unit/scripts.extract-readme-quickstart.test.ts`: extract function returns the `bash quickstart` fence body; throws if the fence is missing; throws if multiple fences.
+- [x] T082 [US4] Implement `scripts/extract-readme-quickstart.mjs`: parses `README.md`, writes the fence body to a temp file, returns the path; CLI flag `--print` to stdout-dump for CI use. *Dependency: T081.*
+- [x] T083 [US4] Write `README.md` derived from `specs/001-project-bootstrap/quickstart.md`:
   - Title + tagline.
   - "Prerequisites" (Node ≥20, gcloud installed, ADC + active project).
   - Fenced ```bash quickstart``` block matching `quickstart.md` exactly.
@@ -233,9 +233,9 @@ to be meaningful.
   - Troubleshooting table.
   - "Supported OS: macOS and Linux only. Windows not supported in v1." statement (FR-018).
   - License + link to LICENSE.
-- [ ] T084 [P] [US4] Test `tests/integration/readme-quickstart.smoke.test.ts`: invoke `scripts/extract-readme-quickstart.mjs --print`, pipe to `bash -e`, then `curl -fsS http://127.0.0.1:4321/api/health`; assert HTTP 200. Tears down the spawned server cleanly.
-- [ ] T085 [US4] Add a CI job `readme-quickstart` to `.github/workflows/ci.yml` (ubuntu-latest only) that runs T084's flow against the freshly built bin. Required for merge.
-- [ ] T086 [P] [US4] Test `tests/integration/readme-quickstart.mutation.test.ts`: temporarily mutate `bin/pubsub-dashboard.mjs` (e.g., add `process.exit(7)` before listen), run the README-quickstart flow, assert it fails. Validates that the gate has real teeth.
+- [x] T084 [P] [US4] Test `tests/integration/readme-quickstart.smoke.test.ts`: invoke `scripts/extract-readme-quickstart.mjs --print`, pipe to `bash -e`, then `curl -fsS http://127.0.0.1:4321/api/health`; assert HTTP 200. Tears down the spawned server cleanly.
+- [x] T085 [US4] Add a CI job `readme-quickstart` to `.github/workflows/ci.yml` (ubuntu-latest only) that runs T084's flow against the freshly built bin. Required for merge.
+- [x] T086 [P] [US4] Test `tests/integration/readme-quickstart.mutation.test.ts`: temporarily mutate `bin/pubsub-dashboard.mjs` (e.g., add `process.exit(7)` before listen), run the README-quickstart flow, assert it fails. Validates that the gate has real teeth.
 
 **Checkpoint**: User Story 4 done. README is the contract; CI enforces it.
 

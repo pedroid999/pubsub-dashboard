@@ -9,6 +9,7 @@ import { stderrLineFor } from '../auth/remediation.js';
 import { start as defaultStart, type RunningServer } from '../boot.js';
 import { createSessionStore } from '../session.js';
 import { BIND_ADDRESS } from '../../shared/port.js';
+import { demoOverridesFromEnv } from './demo.js';
 
 const HELP_TEXT = `pubsub-dashboard — local-first Google Cloud Pub/Sub dashboard
 
@@ -35,6 +36,7 @@ export interface RunCliDeps {
   waitForShutdown?: (server: RunningServer) => Promise<void>;
   clientDir?: string;
   version?: string;
+  env?: NodeJS.ProcessEnv;
 }
 
 /**
@@ -67,9 +69,13 @@ export async function runCli(deps: RunCliDeps): Promise<number> {
     return 0;
   }
 
-  const adcFn = deps.resolveAdc ?? resolveAdc;
-  const projectFn = deps.getActiveProject ?? getActiveProject;
-  const identityFn = deps.resolveIdentity ?? resolveIdentity;
+  // CI seam (FR-019): demo env replaces the gcloud-backed resolvers so the
+  // README quickstart can boot end-to-end without credentials. Injected deps
+  // (used by unit tests) always win over the demo fallback.
+  const demo = demoOverridesFromEnv(deps.env ?? process.env);
+  const adcFn = deps.resolveAdc ?? demo?.resolveAdc ?? resolveAdc;
+  const projectFn = deps.getActiveProject ?? demo?.getActiveProject ?? getActiveProject;
+  const identityFn = deps.resolveIdentity ?? demo?.resolveIdentity ?? resolveIdentity;
   const startFn = deps.start ?? defaultStart;
   const openFn = deps.open;
   const clientDir = deps.clientDir ?? 'dist/client';

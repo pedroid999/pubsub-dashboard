@@ -196,6 +196,38 @@ describe('runCli — session provider closure', () => {
   });
 });
 
+describe('runCli — demo seam (FR-019)', () => {
+  it('boots using PUBSUB_DEMO_PROJECT without any gcloud-backed resolver', async () => {
+    let captured: { projectId: string; identity: string } | undefined;
+    const start = vi
+      .fn()
+      .mockImplementation(async (opts: { getSession: (t: string) => Promise<unknown> }) => {
+        captured = (await opts.getSession('t')) as typeof captured;
+        return {
+          url: 'http://127.0.0.1:4321',
+          port: 4321,
+          close: vi.fn().mockResolvedValue(undefined),
+        };
+      });
+    const code = await runCli({
+      argv: [],
+      logger: createLogger({ level: 'silent' }),
+      stdout: vi.fn(),
+      stderr: vi.fn(),
+      start,
+      clientDir: 'tests/fixtures/client',
+      waitForShutdown: vi.fn().mockResolvedValue(undefined),
+      env: {
+        PUBSUB_DEMO_PROJECT: 'demo-proj',
+        PUBSUB_DEMO_IDENTITY: 'ci@demo.local',
+      } as NodeJS.ProcessEnv,
+    });
+    expect(code).toBe(0);
+    expect(captured?.projectId).toBe('demo-proj');
+    expect(captured?.identity).toBe('ci@demo.local');
+  });
+});
+
 describe('runCli — default waitForShutdown via SIGINT', () => {
   it('resolves and closes the server when SIGINT arrives', async () => {
     const close = vi.fn().mockResolvedValue(undefined);

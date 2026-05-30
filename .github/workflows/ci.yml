@@ -49,5 +49,15 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      # The README quickstart validation job is wired in PR #5 (US4, T085).
-      - run: echo "readme-quickstart validation lands in US4 (T085)"
+
+      - name: Run the README quickstart against the local build (demo seam)
+        env:
+          # Boot offline (no gcloud/ADC in CI) via the documented demo seam.
+          PUBSUB_BIN: node bin/pubsub-dashboard.mjs
+          PUBSUB_DEMO_PROJECT: demo-ci-project
+          PUBSUB_DEMO_IDENTITY: ci@demo.local
+          PORT: '4399'
+        run: |
+          node scripts/extract-readme-quickstart.mjs README.md > /tmp/quickstart.sh
+          cat /tmp/quickstart.sh
+          bash /tmp/quickstart.sh
