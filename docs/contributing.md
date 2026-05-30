@@ -33,6 +33,30 @@ Also enable:
 - **Require branches to be up to date before merging**.
 - **Do not allow bypassing the above settings** (so the gates cannot be skipped).
 
+## Releasing to npm
+
+Publishing is automated via `.github/workflows/release.yml`. It runs
+lint + typecheck + tests + build, then `npm publish --provenance --access public`.
+
+One-time setup:
+
+1. Create an npm **Automation** token (npmjs.com → Access Tokens → Generate New
+   Token → Classic → Automation). Automation tokens bypass 2FA.
+2. Add it to the repo: GitHub → Settings → Secrets and variables → Actions →
+   New repository secret → name `NPM_TOKEN`, value = the token.
+
+To release:
+
+- **Tagged release**: bump `package.json#version`, update `CHANGELOG.md`, merge
+  to `main`, then `git tag vX.Y.Z && git push origin vX.Y.Z`. The tag push
+  triggers the workflow.
+- **First publish of an already-tagged version** (e.g. `v0.1.0` tagged before
+  this workflow existed): run the **Release** workflow manually from the Actions
+  tab (`workflow_dispatch`).
+
+Provenance requires the repository to be public and is published via GitHub
+OIDC (`id-token: write`); no extra setup beyond `NPM_TOKEN`.
+
 ## Quality gate invariants
 
 - **Coverage**: ≥90% line **and** branch on `src/**`. Exclusions are limited to
