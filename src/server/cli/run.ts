@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import type { Logger } from 'pino';
 import { parseCliArgs } from '../../cli/args.js';
 import { createLogger } from '../middleware/trace.js';
@@ -25,6 +27,17 @@ Flags:
   --version    Print the version and exit
 
 The server is loopback-only and authenticates via gcloud ADC.`;
+
+/**
+ * Absolute path to the Vite-built client, resolved relative to THIS module
+ * rather than process.cwd(). When installed via npx the command runs from an
+ * arbitrary directory, so a cwd-relative path (e.g. 'dist/client') fails with
+ * ENOENT. The layout `<root>/server/cli/ -> <root>/client` holds in both `dist`
+ * (production) and `src` (dev), so `../../client` is correct in both.
+ */
+export function defaultClientDir(): string {
+  return join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'client');
+}
 
 export interface RunCliDeps {
   argv: string[];
@@ -81,7 +94,7 @@ export async function runCli(deps: RunCliDeps): Promise<number> {
   const identityFn = deps.resolveIdentity ?? demo?.resolveIdentity ?? resolveIdentity;
   const startFn = deps.start ?? defaultStart;
   const openFn = deps.open;
-  const clientDir = deps.clientDir ?? 'dist/client';
+  const clientDir = deps.clientDir ?? defaultClientDir();
   const runLogger = args.verbose ? logger.child({ verbose: true }) : logger;
 
   try {
