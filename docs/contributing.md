@@ -33,6 +33,34 @@ Also enable:
 - **Require branches to be up to date before merging**.
 - **Do not allow bypassing the above settings** (so the gates cannot be skipped).
 
+## Releasing to npm
+
+Publishing is automated via `.github/workflows/release.yml`, which runs on every
+push to `main` (i.e. every merged PR). It runs lint + typecheck + tests + build,
+then publishes **only if `package.json#version` is not already on npm** — npm
+versions are immutable, so a merge without a version bump is a no-op.
+
+Authentication uses **npm Trusted Publishing (OIDC)** — there is **no stored
+token**. The workflow proves its identity to npm via GitHub's OIDC, and npm adds
+build provenance automatically.
+
+One-time setup (already done once the package exists):
+
+1. npmjs.com → **Packages → pubsub-dashboard → Settings → Trusted publishing**.
+2. Add a publisher: GitHub repository `pedroid999/pubsub-dashboard`, workflow
+   filename `release.yml`. (Leave the environment blank unless you add one.)
+
+> Trusted Publishing cannot do the **first** publish of a brand-new package
+> (npm requires the package to exist first). `0.1.0` was published manually with
+> `npm publish --auth-type=web`; every release after that is automated.
+
+To cut a release:
+
+1. Bump `package.json#version` (semver) and add a `CHANGELOG.md` entry in a PR.
+2. Merge the PR to `main`. The workflow detects the new version and publishes it.
+
+Merges that don't change the version simply skip the publish step.
+
 ## Quality gate invariants
 
 - **Coverage**: ≥90% line **and** branch on `src/**`. Exclusions are limited to

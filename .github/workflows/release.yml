@@ -1,0 +1,57 @@
+name: Release
+
+# Publishes the package to npm on every push to `main` (i.e. every merged PR),
+# but ONLY when package.json#version is not already on npm — npm versions are
+# immutable, so merges without a version bump are a no-op.
+#
+# Auth uses npm Trusted Publishing (OIDC) — NO stored token. Configure it once:
+#   npmjs.com → Packages → pubsub-dashboard → Settings → Trusted publishing →
+#   add publisher: GitHub repo `pedroid999/pubsub-dashboard`, workflow
+#   `release.yml`. Provenance is generated automatically.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # required for npm provenance (OIDC)
+
+jobs:
+  publish:
+    name: publish to npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: npm
+
+      - name: Upgrade npm (Trusted Publishing/OIDC needs npm >= 11.5.1)
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify before release (lint + typecheck + tests + coverage)
+        run: |
+          npm run lint
+          npm run typecheck
+          npm run test
+
+      - name: Build (client + server)
+        run: npm run build
+
+      - name: Publish to npm if the version is new (OIDC, with provenance)
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION is already published — skipping."
+          else
+            echo "Publishing $NAME@$VERSION..."
+            npm publish --provenance --access public
+          fi
