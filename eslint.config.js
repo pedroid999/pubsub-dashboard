@@ -61,4 +61,25 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // FR-020 extension boundary: only `src/server/auth/index.ts` may be consumed
+    // from outside the auth module. New dashboard sections (feature 002+) must
+    // not reach into auth/adc.ts or auth/project.ts internals.
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/server/auth/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['**/auth/adc', '**/auth/adc.js', '**/auth/project', '**/auth/project.js'],
+              message:
+                'Import auth via src/server/auth/index.ts — auth/adc.ts and auth/project.ts internals are off-limits outside src/server/auth/** (FR-020).',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );

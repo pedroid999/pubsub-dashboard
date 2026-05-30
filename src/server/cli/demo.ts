@@ -1,4 +1,4 @@
-import type { AdcContext } from '../auth/adc.js';
+import type { AdcContext } from '../auth/index.js';
 
 export interface DemoOverrides {
   resolveAdc: () => Promise<AdcContext>;

@@ -1,9 +1,26 @@
 {
   "name": "pubsub-dashboard",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Local-first developer dashboard for Google Cloud Pub/Sub — runs entirely on 127.0.0.1, authenticates via gcloud ADC, zero telemetry.",
   "license": "Apache-2.0",
   "type": "module",
+  "keywords": [
+    "pubsub",
+    "google-cloud",
+    "gcp",
+    "dashboard",
+    "local-first",
+    "developer-tools",
+    "cli"
+  ],
+  "homepage": "https://github.com/pedroid999/pubsub-dashboard#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pedroid999/pubsub-dashboard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pedroid999/pubsub-dashboard/issues"
+  },
   "bin": {
     "pubsub-dashboard": "bin/pubsub-dashboard.mjs"
   },
@@ -26,6 +43,7 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "e2e": "playwright test",
+    "bench": "tsx tests/perf/cold-boot.bench.ts",
     "verify": "npm run lint && npm run format:check && npm run typecheck && npm run test && npm run e2e"
   },
   "dependencies": {

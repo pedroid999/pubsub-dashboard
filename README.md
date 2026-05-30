@@ -59,6 +59,21 @@ echo "pubsub-dashboard health: ok"
 A browser tab opens on `http://127.0.0.1:4321` showing the active project ID,
 your identity, and a Diagnostics panel with the most recent backend operation.
 
+## Supported OS
+
+macOS and Linux only. **Windows is not supported** in v1.
+
+## What's in scope (and what's not)
+
+**In scope for v1 (this release):** one-command boot, gcloud ADC auth, active
+project + identity display, loopback-only operation with strict CSP and log
+redaction, and an in-app Diagnostics panel.
+
+**Out of scope for v1 (planned for feature 002+):** publishing messages,
+subscribing/pulling messages, and JSON message composition. See
+[docs/extension-points.md](docs/extension-points.md) for how those features
+plug in without changing the boot or auth paths.
+
 ## Flags
 
 | Flag         | Default | Effect                                                                                |

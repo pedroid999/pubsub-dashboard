@@ -1,11 +1,14 @@
 import type { Logger } from 'pino';
 import { parseCliArgs } from '../../cli/args.js';
 import { createLogger } from '../middleware/trace.js';
-import { resolveAdc, type AdcContext } from '../auth/adc.js';
-import { resolveIdentity } from '../auth/identity.js';
-import { getActiveProject } from '../auth/project.js';
-import { CliError } from '../auth/errors.js';
-import { stderrLineFor } from '../auth/remediation.js';
+import {
+  resolveAdc,
+  resolveIdentity,
+  getActiveProject,
+  CliError,
+  stderrLineFor,
+  type AdcContext,
+} from '../auth/index.js';
 import { start as defaultStart, type RunningServer } from '../boot.js';
 import { createSessionStore } from '../session.js';
 import { BIND_ADDRESS } from '../../shared/port.js';
