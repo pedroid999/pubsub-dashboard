@@ -254,7 +254,7 @@ to be meaningful.
 - [x] T093 Update `README.md` "Supported OS" note (FR-018) and "What's in scope and what's not" section (publish/subscribe/JSON compose explicitly out of v1 scope per spec, planned in feature 002+).
 - [x] T093b Write `docs/extension-points.md` documenting how feature 002+ adds new dashboard sections without modifying the boot path or the auth resolution path (FR-020): the documented surface is **(a)** add a new file under `src/server/routes/<feature>.ts`, **(b)** add zod schemas under `src/server/schemas/<feature>.ts`, **(c)** register the route in `createApp()`, **(d)** add a React component under `src/client/components/<Feature>.tsx`. Forbidden: editing `bin/`, `src/server/boot.ts`, or `src/server/auth/**`. Add an ESLint `no-restricted-imports` rule in `eslint.config.js` (extending T073) that forbids any file outside `src/server/auth/**` from importing `src/server/auth/adc.ts` or `src/server/auth/project.ts` internals (only `src/server/auth/index.ts` re-exports may be consumed). Add a unit test in `tests/unit/lint.extension-rule.test.ts` that asserts the lint rule catches a fixture violating it.
 - [x] T094 Final dependency audit: `npm audit --omit=dev` returns zero high/critical; every runtime dep present in the published tarball is justified in `research.md` R13.
-- [ ] T095 Tag `v0.1.0`, open PR `001-project-bootstrap → main`; merge gated by `verify (ubuntu-latest)`, `verify (macos-latest)`, `readme-quickstart`.
+- [x] T095 Tag `v0.1.0`, open PR `001-project-bootstrap → main`; merge gated by `verify (ubuntu-latest)`, `verify (macos-latest)`, `readme-quickstart`.
 
 ---
 
