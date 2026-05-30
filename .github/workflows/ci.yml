@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node-version: ['20.x']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright (no browser download needed for APIRequestContext)
+        run: npx playwright install-deps || true
+
+      - name: Build (client + server)
+        run: npm run build
+
+      - name: Verify (lint, format, typecheck, test+coverage, e2e)
+        run: npm run verify
+
+  readme-quickstart:
+    name: readme-quickstart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # The README quickstart validation job is wired in PR #5 (US4, T085).
+      - run: echo "readme-quickstart validation lands in US4 (T085)"

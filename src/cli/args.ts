@@ -35,16 +35,14 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
     });
     raw = parsed.values as Record<string, string | boolean>;
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    throw new Error(`[pubsub-dashboard] ${msg}. See --help.`);
+    throw new Error(`[pubsub-dashboard] ${(err as Error).message}. See --help.`);
   }
 
   const result = CliArgsSchema.safeParse(raw);
   if (!result.success) {
-    const issue = result.error.issues[0];
-    const path = issue?.path.join('.') ?? '(unknown)';
-    const reason = issue?.message ?? 'invalid';
-    throw new Error(`[pubsub-dashboard] --${path} ${reason}. See --help.`);
+    // A failed safeParse always has at least one issue.
+    const issue = result.error.issues[0]!;
+    throw new Error(`[pubsub-dashboard] --${issue.path.join('.')} ${issue.message}. See --help.`);
   }
   return result.data;
 }

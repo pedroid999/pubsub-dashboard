@@ -64,4 +64,17 @@ describe('GET /api/session (T-HTTP-010..013)', () => {
     expect(body.code).toBe('ADC_MISSING');
     expect(body.remediation).toContain('gcloud auth application-default login');
   });
+
+  it('propagates a non-ADC error as a 500 (rethrow branch)', async () => {
+    const app = buildServer({
+      logger,
+      port: 4321,
+      clientDir: 'tests/fixtures/client',
+      getSession: async () => {
+        throw new Error('unexpected boom');
+      },
+    });
+    const res = await app.request('/api/session', { headers });
+    expect(res.status).toBe(500);
+  });
 });

@@ -62,4 +62,18 @@ describe('client/lib/api — apiGet (T052)', () => {
       .mockResolvedValue(fakeResponse({ ok: true, status: 200, body: { value: 'not-a-number' } }));
     await expect(apiGet('/api/thing', Schema, fetchImpl)).rejects.toThrow();
   });
+
+  it('defaults code to INTERNAL and synthesizes a message when the error body is empty', async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValue(fakeResponse({ ok: false, status: 500, body: null }));
+    try {
+      await apiGet('/api/thing', Schema, fetchImpl);
+      expect.unreachable('should have thrown');
+    } catch (err) {
+      expect((err as ApiError).code).toBe('INTERNAL');
+      expect((err as ApiError).message).toContain('/api/thing');
+      expect((err as ApiError).remediation).toBeUndefined();
+    }
+  });
 });

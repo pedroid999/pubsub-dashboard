@@ -45,4 +45,31 @@ describe('auth/adc — resolveAdc (T033)', () => {
       client_email: 'sa@project.iam.gserviceaccount.com',
     });
   });
+
+  it('throws AdcMissingError when the initial getAccessToken rejects', async () => {
+    getClient.mockResolvedValue({
+      getAccessToken: vi.fn().mockRejectedValue(new Error('token endpoint down')),
+    });
+    await expect(resolveAdc()).rejects.toBeInstanceOf(AdcMissingError);
+  });
+
+  it('throws AdcMissingError when a later token refresh yields an empty token', async () => {
+    const getAccessToken = vi
+      .fn()
+      .mockResolvedValueOnce({ token: 'first' })
+      .mockResolvedValueOnce({ token: null });
+    getClient.mockResolvedValue({ getAccessToken });
+    const ctx = await resolveAdc();
+    await expect(ctx.getAccessToken()).rejects.toBeInstanceOf(AdcMissingError);
+  });
+
+  it('throws AdcMissingError when a later token refresh rejects', async () => {
+    const getAccessToken = vi
+      .fn()
+      .mockResolvedValueOnce({ token: 'first' })
+      .mockRejectedValueOnce(new Error('refresh failed'));
+    getClient.mockResolvedValue({ getAccessToken });
+    const ctx = await resolveAdc();
+    await expect(ctx.getAccessToken()).rejects.toBeInstanceOf(AdcMissingError);
+  });
 });

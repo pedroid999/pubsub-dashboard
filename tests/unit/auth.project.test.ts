@@ -47,4 +47,11 @@ describe('auth/project — getActiveProject (T035)', () => {
     const exec: ExecFn = vi.fn(async () => ({ stdout: 'BadProject\n', stderr: '' }));
     await expect(getActiveProject({ exec })).rejects.toBeInstanceOf(NoActiveProjectError);
   });
+
+  it('maps a generic (non-ENOENT) gcloud failure to NoActiveProjectError', async () => {
+    const exec: ExecFn = vi.fn(async () => {
+      throw new Error('gcloud exited with code 1');
+    });
+    await expect(getActiveProject({ exec })).rejects.toBeInstanceOf(NoActiveProjectError);
+  });
 });

@@ -29,17 +29,18 @@ export default defineConfig({
         'src/**/*.d.ts',
         'src/client/components/ui/**',
         'src/**/*.stories.*',
+        'src/client/main.tsx',
         'bin/**',
         'dist/**',
       ],
-      // Final thresholds are wired in Phase 5 / US2 (task T072).
-      // For PR #1 (scaffolding + foundational) the thresholds stay at 0
-      // so PR #1 itself can land before US2 ratchets them to 90.
+      // FR-015 / SC-005: hard gate at 90% line AND branch on src/**.
+      // Functions + statements are held to the same bar (stricter than the
+      // spec minimum, per the analyze F7 decision).
       thresholds: {
-        lines: 0,
-        branches: 0,
-        functions: 0,
-        statements: 0,
+        lines: 90,
+        branches: 90,
+        functions: 90,
+        statements: 90,
       },
     },
   },

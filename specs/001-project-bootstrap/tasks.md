@@ -187,10 +187,10 @@ to be meaningful.
 
 ### Final gate configurations
 
-- [ ] T072 [US2] Finalize `vitest.config.ts`: `coverage.provider = 'v8'`, `coverage.thresholds = { lines: 90, branches: 90, functions: 90, statements: 90 }`, `coverage.include = ['src/**/*.{ts,tsx}']`, `coverage.exclude = ['src/**/*.d.ts', 'src/client/components/ui/**', 'src/**/*.stories.*', 'bin/**', 'dist/**']` (matches FR-015 verbatim).
-- [ ] T073 [US2] Finalize `eslint.config.js`: enable `typescript-eslint` strict + stylistic, `eslint-plugin-import` order, `no-restricted-imports` to forbid any direct read of `process.env.GOOGLE_CLOUD_PROJECT` (enforces the clarification: only `gcloud config get-value project`).
-- [ ] T074 [US2] Finalize `.prettierrc` and add `prettier --check .` to verify pipeline.
-- [ ] T075 [US2] Wire `package.json` scripts:
+- [x] T072 [US2] Finalize `vitest.config.ts`: `coverage.provider = 'v8'`, `coverage.thresholds = { lines: 90, branches: 90, functions: 90, statements: 90 }`, `coverage.include = ['src/**/*.{ts,tsx}']`, `coverage.exclude = ['src/**/*.d.ts', 'src/client/components/ui/**', 'src/**/*.stories.*', 'bin/**', 'dist/**']` (matches FR-015 verbatim).
+- [x] T073 [US2] Finalize `eslint.config.js`: enable `typescript-eslint` strict + stylistic, `eslint-plugin-import` order, `no-restricted-imports` to forbid any direct read of `process.env.GOOGLE_CLOUD_PROJECT` (enforces the clarification: only `gcloud config get-value project`).
+- [x] T074 [US2] Finalize `.prettierrc` and add `prettier --check .` to verify pipeline.
+- [x] T075 [US2] Wire `package.json` scripts:
   ```
   "lint": "eslint .",
   "format:check": "prettier --check .",
@@ -202,7 +202,7 @@ to be meaningful.
 
 ### CI workflow
 
-- [ ] T076 [US2] Create `.github/workflows/ci.yml`:
+- [x] T076 [US2] Create `.github/workflows/ci.yml`:
   - Triggers: `pull_request`, `push` to `main`.
   - `jobs.verify.strategy.matrix.os: [ubuntu-latest, macos-latest]`, `node-version: [20.x]`.
   - Steps: `actions/checkout@v4`, `actions/setup-node@v4` with `cache: 'npm'`, `npm ci`, `npx playwright install --with-deps chromium` (no-op for `APIRequestContext` but required by some Playwright internals), `npm run verify`.
@@ -210,10 +210,10 @@ to be meaningful.
 
 ### Gate-self-tests (meta)
 
-- [ ] T077 [P] [US2] Test `tests/integration/verify.gate-lint.test.ts`: spawn `npm run lint` against a tempdir containing a fixture with a deliberate ESLint violation; assert non-zero exit.
-- [ ] T078 [P] [US2] Test `tests/integration/verify.gate-typecheck.test.ts`: similar, with a TS error fixture.
-- [ ] T079 [P] [US2] Test `tests/integration/verify.gate-coverage.test.ts`: similar, with a source file that drops coverage below 90%.
-- [ ] T080 [US2] Document branch-protection setup in `docs/contributing.md` (or a new section of `README.md`): required status checks = `verify (ubuntu-latest)`, `verify (macos-latest)`, `readme-quickstart`.
+- [x] T077 [P] [US2] Test `tests/integration/verify.gate-lint.test.ts`: spawn `npm run lint` against a tempdir containing a fixture with a deliberate ESLint violation; assert non-zero exit.
+- [x] T078 [P] [US2] Test `tests/integration/verify.gate-typecheck.test.ts`: similar, with a TS error fixture.
+- [x] T079 [P] [US2] Test `tests/integration/verify.gate-coverage.test.ts`: similar, with a source file that drops coverage below 90%.
+- [x] T080 [US2] Document branch-protection setup in `docs/contributing.md` (or a new section of `README.md`): required status checks = `verify (ubuntu-latest)`, `verify (macos-latest)`, `readme-quickstart`.
 
 **Checkpoint**: User Story 2 done. CI blocks PRs on any gate violation.
 

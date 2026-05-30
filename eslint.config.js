@@ -38,4 +38,27 @@ export default tseslint.config(
       },
     },
   },
+  {
+    // Enforce the clarification: the active project comes ONLY from
+    // `gcloud config get-value project` (src/server/auth/project.ts).
+    // Reading GOOGLE_CLOUD_PROJECT anywhere in src/ is forbidden.
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "MemberExpression[object.object.name='process'][object.property.name='env'][property.name='GOOGLE_CLOUD_PROJECT']",
+          message:
+            'Forbidden: resolve the project via `gcloud config get-value project` (auth/project.ts), never GOOGLE_CLOUD_PROJECT.',
+        },
+        {
+          selector:
+            "MemberExpression[object.object.name='process'][object.property.name='env'][computed=true]:has(Literal[value='GOOGLE_CLOUD_PROJECT'])",
+          message:
+            'Forbidden: resolve the project via `gcloud config get-value project` (auth/project.ts), never GOOGLE_CLOUD_PROJECT.',
+        },
+      ],
+    },
+  },
 );

@@ -123,9 +123,8 @@ export async function runCli(deps: RunCliDeps): Promise<number> {
       return err.exitCode;
     }
     runLogger.error({ err }, 'unexpected error');
-    stderr(
-      `[pubsub-dashboard] Unexpected error: ${err instanceof Error ? err.message : String(err)}`,
-    );
+    const message = err instanceof Error ? err.message : String(err);
+    stderr(`[pubsub-dashboard] Unexpected error: ${message}`);
     return 1;
   }
 }
@@ -135,6 +134,7 @@ function defaultWaitForShutdown(server: RunningServer): Promise<void> {
   return new Promise<void>((resolve) => {
     let closing = false;
     const onSignal = () => {
+      /* v8 ignore next 3 -- a second SIGINT force-exits; unsafe to exercise in-process */
       if (closing) {
         process.exit(0);
       }

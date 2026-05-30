@@ -73,4 +73,27 @@ describe('createDiagnosticsBuffer (T062)', () => {
     }
     expect(buffer.size()).toBe(50);
   });
+
+  it('in verbose mode stores a non-JSON response body as raw text', async () => {
+    const buffer = createDiagnosticsBuffer({ verbose: true });
+    const app = new Hono<{ Variables: TraceVars }>();
+    app.use('*', traceMiddleware(createLogger({ level: 'silent' })));
+    app.use('*', buffer.middleware());
+    app.get('/page', (c) => c.html('<!doctype html>hello'));
+    await app.request('/page', { headers: { host: '127.0.0.1' } });
+    const record = buffer.list(20)[0]!;
+    expect(String(record.response.body)).toContain('hello');
+  });
+
+  it('records an error object for responses with status >= 400', async () => {
+    const buffer = createDiagnosticsBuffer({ verbose: false });
+    const app = new Hono<{ Variables: TraceVars }>();
+    app.use('*', traceMiddleware(createLogger({ level: 'silent' })));
+    app.use('*', buffer.middleware());
+    app.get('/boom', (c) => c.json({ nope: true }, 500));
+    await app.request('/boom', { headers: { host: '127.0.0.1' } });
+    const record = buffer.list(20)[0]!;
+    expect(record.error).not.toBeNull();
+    expect(record.response.status).toBe(500);
+  });
 });
