@@ -97,48 +97,48 @@ to be meaningful.
 
 ### Auth + project resolution
 
-- [ ] T033 [P] [US1] Test `tests/unit/auth.adc.test.ts`: success path returns an authenticated client + identity; missing/expired ADC throws `ADCMissingError` mapped to exit code 12 with remediation `gcloud auth application-default login`. The test also asserts that the verbatim GCP error is logged at `error` level via pino BEFORE the canonical stderr line is printed (per `spec.md` edge case + `contracts/cli.md` exit-12 note).
-- [ ] T034 [US1] Implement `src/server/auth/adc.ts` using `google-auth-library`. *Dependency: T033.*
-- [ ] T034b [P] [US1] Test `tests/unit/auth.identity.test.ts`: per `research.md` R2 *Identity resolution*, given a service-account credential with non-empty `client_email`, returns it directly (no userinfo call); given a user credential with empty `client_email`, calls `https://www.googleapis.com/oauth2/v3/userinfo` exactly once with the access token, parses `email`, caches it; on userinfo failure (network error, 401, malformed body), returns the literal `"adc:user (email unresolved)"` and logs a `warn`. Asserts userinfo is the ONLY non-`*.googleapis.com` host avoided (i.e., the URL hits googleapis.com, satisfying Principle I).
-- [ ] T034c [US1] Implement `src/server/auth/identity.ts` exporting `resolveIdentity(authClient): Promise<string>` per the order in R2. *Dependency: T034b.*
-- [ ] T035 [P] [US1] Test `tests/unit/auth.project.test.ts`: `getActiveProject()` shells out to `gcloud config get-value project` (mocked `execFile`), trims output, validates regex; empty result throws `NoActiveProjectError` (exit 13); `ENOENT` for gcloud → `GcloudMissingError` (exit 11). MUST NOT consult `GOOGLE_CLOUD_PROJECT` env var (test asserts env access via spy).
-- [ ] T036 [US1] Implement `src/server/auth/project.ts`. *Dependency: T035.*
-- [ ] T037 [P] [US1] Test `tests/unit/auth.remediation.test.ts`: each error class maps to its documented stderr line (verbatim strings from `contracts/cli.md`).
-- [ ] T038 [US1] Implement `src/server/auth/remediation.ts`. *Dependency: T037.*
+- [x] T033 [P] [US1] Test `tests/unit/auth.adc.test.ts`: success path returns an authenticated client + identity; missing/expired ADC throws `ADCMissingError` mapped to exit code 12 with remediation `gcloud auth application-default login`. The test also asserts that the verbatim GCP error is logged at `error` level via pino BEFORE the canonical stderr line is printed (per `spec.md` edge case + `contracts/cli.md` exit-12 note).
+- [x] T034 [US1] Implement `src/server/auth/adc.ts` using `google-auth-library`. *Dependency: T033.*
+- [x] T034b [P] [US1] Test `tests/unit/auth.identity.test.ts`: per `research.md` R2 *Identity resolution*, given a service-account credential with non-empty `client_email`, returns it directly (no userinfo call); given a user credential with empty `client_email`, calls `https://www.googleapis.com/oauth2/v3/userinfo` exactly once with the access token, parses `email`, caches it; on userinfo failure (network error, 401, malformed body), returns the literal `"adc:user (email unresolved)"` and logs a `warn`. Asserts userinfo is the ONLY non-`*.googleapis.com` host avoided (i.e., the URL hits googleapis.com, satisfying Principle I).
+- [x] T034c [US1] Implement `src/server/auth/identity.ts` exporting `resolveIdentity(authClient): Promise<string>` per the order in R2. *Dependency: T034b.*
+- [x] T035 [P] [US1] Test `tests/unit/auth.project.test.ts`: `getActiveProject()` shells out to `gcloud config get-value project` (mocked `execFile`), trims output, validates regex; empty result throws `NoActiveProjectError` (exit 13); `ENOENT` for gcloud → `GcloudMissingError` (exit 11). MUST NOT consult `GOOGLE_CLOUD_PROJECT` env var (test asserts env access via spy).
+- [x] T036 [US1] Implement `src/server/auth/project.ts`. *Dependency: T035.*
+- [x] T037 [P] [US1] Test `tests/unit/auth.remediation.test.ts`: each error class maps to its documented stderr line (verbatim strings from `contracts/cli.md`).
+- [x] T038 [US1] Implement `src/server/auth/remediation.ts`. *Dependency: T037.*
 
 ### Health + session endpoints
 
-- [ ] T039 [P] [US1] Contract test `tests/integration/http.health.test.ts` covering T-HTTP-001..003 (status, schema, x-trace-id, Host header guard).
-- [ ] T040 [US1] Implement `src/server/routes/health.ts` (`GET /api/health`) and register in `createApp`. *Dependency: T039.*
-- [ ] T041 [P] [US1] Contract test `tests/integration/http.session.test.ts` covering T-HTTP-010..013 and the 503 `ADC_MISSING` defensive path.
-- [ ] T042 [US1] Implement `src/server/routes/session.ts` (`GET /api/session`), wire `ActiveSession` construction at boot from `getActiveProject()` + ADC identity + `BIND_ADDRESS` + port. *Dependency: T041.*
+- [x] T039 [P] [US1] Contract test `tests/integration/http.health.test.ts` covering T-HTTP-001..003 (status, schema, x-trace-id, Host header guard).
+- [x] T040 [US1] Implement `src/server/routes/health.ts` (`GET /api/health`) and register in `createApp`. *Dependency: T039.*
+- [x] T041 [P] [US1] Contract test `tests/integration/http.session.test.ts` covering T-HTTP-010..013 and the 503 `ADC_MISSING` defensive path.
+- [x] T042 [US1] Implement `src/server/routes/session.ts` (`GET /api/session`), wire `ActiveSession` construction at boot from `getActiveProject()` + ADC identity + `BIND_ADDRESS` + port. *Dependency: T041.*
 
 ### Static asset serving
 
-- [ ] T043 [P] [US1] Test `tests/integration/http.static.test.ts`: `GET /` returns 200 `text/html`; `GET /assets/<fingerprinted>` returns 200 with `Cache-Control: immutable`; `GET /api/does-not-exist` returns 404 (T-HTTP-031); `GET /assets/<bogus>` returns 404 (T-HTTP-032).
-- [ ] T044 [US1] Implement `src/server/static.ts` serving `dist/client/` with SPA fallback for non-`/api/` non-`/assets/` paths. *Dependency: T043.*
+- [x] T043 [P] [US1] Test `tests/integration/http.static.test.ts`: `GET /` returns 200 `text/html`; `GET /assets/<fingerprinted>` returns 200 with `Cache-Control: immutable`; `GET /api/does-not-exist` returns 404 (T-HTTP-031); `GET /assets/<bogus>` returns 404 (T-HTTP-032).
+- [x] T044 [US1] Implement `src/server/static.ts` serving `dist/client/` with SPA fallback for non-`/api/` non-`/assets/` paths. *Dependency: T043.*
 
 ### Boot lifecycle + bin entrypoint
 
-- [ ] T045 [P] [US1] Integration test `tests/integration/boot.lifecycle.test.ts`: `start()` listens on `127.0.0.1:<dynamic-port>`, `GET /api/health` returns 200, `SIGINT` triggers clean shutdown in <1 s, port is released (verified by re-binding).
-- [ ] T046 [US1] Implement `src/server/boot.ts` exporting `start({ port, verbose })` and `stop()`. Wires `createApp` + auth + session + static + signal handlers (SIGINT/SIGTERM → graceful, second SIGINT → immediate exit). *Dependency: T045.*
-- [ ] T047 [P] [US1] Integration test `tests/integration/boot.port-conflict.test.ts`: pre-bind a socket on `4321`, run `start({port:4321})`, assert exit code 14 with documented stderr line (T-CLI-009).
-- [ ] T048 [US1] Implement port-conflict detection in `boot.ts` (catch `EADDRINUSE`, exit 14 with remediation). *Dependency: T047.*
-- [ ] T049 [P] [US1] Integration test `tests/integration/boot.node-guard.test.ts`: spawn `bin/pubsub-dashboard.mjs` with a fake `process.version` shim, assert exit code 10 + stderr line (T-CLI-005).
-- [ ] T050 [P] [US1] Integration test `tests/integration/boot.browser-open.test.ts`: mock `open` package; on successful boot, `open` is called with `http://127.0.0.1:<port>`; if `open` rejects, exit code remains 0 and the URL is printed to stdout (T-CLI-010, FR-003 edge case).
-- [ ] T051 [US1] Implement `bin/pubsub-dashboard.mjs`: Node-version guard (exit 10), parse args via `src/cli/args.ts` (exit 2 on invalid), call `start(args)`, call `open(url)` after `listen` resolves; mapped exit codes 11/12/13/14 surface from `boot.ts`. *Dependency: T049, T050.*
+- [x] T045 [P] [US1] Integration test `tests/integration/boot.lifecycle.test.ts`: `start()` listens on `127.0.0.1:<dynamic-port>`, `GET /api/health` returns 200, `SIGINT` triggers clean shutdown in <1 s, port is released (verified by re-binding).
+- [x] T046 [US1] Implement `src/server/boot.ts` exporting `start({ port, verbose })` and `stop()`. Wires `createApp` + auth + session + static + signal handlers (SIGINT/SIGTERM → graceful, second SIGINT → immediate exit). *Dependency: T045.*
+- [x] T047 [P] [US1] Integration test `tests/integration/boot.port-conflict.test.ts`: pre-bind a socket on `4321`, run `start({port:4321})`, assert exit code 14 with documented stderr line (T-CLI-009).
+- [x] T048 [US1] Implement port-conflict detection in `boot.ts` (catch `EADDRINUSE`, exit 14 with remediation). *Dependency: T047.*
+- [x] T049 [P] [US1] Integration test `tests/integration/boot.node-guard.test.ts`: spawn `bin/pubsub-dashboard.mjs` with a fake `process.version` shim, assert exit code 10 + stderr line (T-CLI-005).
+- [x] T050 [P] [US1] Integration test `tests/integration/boot.browser-open.test.ts`: mock `open` package; on successful boot, `open` is called with `http://127.0.0.1:<port>`; if `open` rejects, exit code remains 0 and the URL is printed to stdout (T-CLI-010, FR-003 edge case).
+- [x] T051 [US1] Implement `bin/pubsub-dashboard.mjs`: Node-version guard (exit 10), parse args via `src/cli/args.ts` (exit 2 on invalid), call `start(args)`, call `open(url)` after `listen` resolves; mapped exit codes 11/12/13/14 surface from `boot.ts`. *Dependency: T049, T050.*
 
 ### Minimal client UI
 
-- [ ] T052 [P] [US1] Test `src/client/lib/api.ts` via `tests/unit/client.api.test.ts`: typed `fetch<T>(path, schema)` parses the response with the provided zod schema and surfaces `x-trace-id` header.
-- [ ] T053 [US1] Implement `src/client/lib/api.ts`. *Dependency: T052.*
-- [ ] T054 [P] [US1] Component test `tests/unit/client.SessionBadge.test.tsx` (React Testing Library + Vitest jsdom env): renders `projectId` and `identity` from `/api/session` (mocked), shows skeleton when loading, shows error toast on 503 with the remediation message.
-- [ ] T055 [US1] Implement `src/client/components/SessionBadge.tsx`. *Dependency: T054.*
-- [ ] T056 [US1] Implement `src/client/App.tsx` rendering `<SessionBadge />` + header; bootstraps via `main.tsx` + `index.html` Vite template. Tailwind classes only; no third-party CSS imports.
+- [x] T052 [P] [US1] Test `src/client/lib/api.ts` via `tests/unit/client.api.test.ts`: typed `fetch<T>(path, schema)` parses the response with the provided zod schema and surfaces `x-trace-id` header.
+- [x] T053 [US1] Implement `src/client/lib/api.ts`. *Dependency: T052.*
+- [x] T054 [P] [US1] Component test `tests/unit/client.SessionBadge.test.tsx` (React Testing Library + Vitest jsdom env): renders `projectId` and `identity` from `/api/session` (mocked), shows skeleton when loading, shows error toast on 503 with the remediation message.
+- [x] T055 [US1] Implement `src/client/components/SessionBadge.tsx`. *Dependency: T054.*
+- [x] T056 [US1] Implement `src/client/App.tsx` rendering `<SessionBadge />` + header; bootstraps via `main.tsx` + `index.html` Vite template. Tailwind classes only; no third-party CSS imports.
 
 ### End-to-end story acceptance
 
-- [ ] T057 [US1] E2E test `tests/e2e/us1-first-run.spec.ts` (Playwright `APIRequestContext`): builds client, starts server via `start()`, hits `/api/health` and `/api/session`, asserts `bindAddress === '127.0.0.1'`, `port === DEFAULT_PORT`, response schemas valid, `x-trace-id` present on both responses.
+- [x] T057 [US1] E2E test `tests/e2e/us1-first-run.spec.ts` (Playwright `APIRequestContext`): builds client, starts server via `start()`, hits `/api/health` and `/api/session`, asserts `bindAddress === '127.0.0.1'`, `port === DEFAULT_PORT`, response schemas valid, `x-trace-id` present on both responses.
 
 **Checkpoint**: User Story 1 done. A developer with ADC + active project can run a locally-built bin and reach a working dashboard. *MVP can ship here.*
 

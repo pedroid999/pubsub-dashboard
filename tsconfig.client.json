@@ -11,7 +11,8 @@
     "src/client/**/*.tsx",
     "src/shared/**/*.ts",
     "src/server/schemas/**/*.ts",
-    "tests/unit/**/*.tsx"
+    "tests/unit/**/*.tsx",
+    "tests/setup.client.ts"
   ],
   "exclude": [
     "node_modules",
