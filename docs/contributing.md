@@ -35,27 +35,31 @@ Also enable:
 
 ## Releasing to npm
 
-Publishing is automated via `.github/workflows/release.yml`. It runs
-lint + typecheck + tests + build, then `npm publish --provenance --access public`.
+Publishing is automated via `.github/workflows/release.yml`, which runs on every
+push to `main` (i.e. every merged PR). It runs lint + typecheck + tests + build,
+then publishes **only if `package.json#version` is not already on npm** — npm
+versions are immutable, so a merge without a version bump is a no-op.
 
-One-time setup:
+Authentication uses **npm Trusted Publishing (OIDC)** — there is **no stored
+token**. The workflow proves its identity to npm via GitHub's OIDC, and npm adds
+build provenance automatically.
 
-1. Create an npm **Automation** token (npmjs.com → Access Tokens → Generate New
-   Token → Classic → Automation). Automation tokens bypass 2FA.
-2. Add it to the repo: GitHub → Settings → Secrets and variables → Actions →
-   New repository secret → name `NPM_TOKEN`, value = the token.
+One-time setup (already done once the package exists):
 
-To release:
+1. npmjs.com → **Packages → pubsub-dashboard → Settings → Trusted publishing**.
+2. Add a publisher: GitHub repository `pedroid999/pubsub-dashboard`, workflow
+   filename `release.yml`. (Leave the environment blank unless you add one.)
 
-- **Tagged release**: bump `package.json#version`, update `CHANGELOG.md`, merge
-  to `main`, then `git tag vX.Y.Z && git push origin vX.Y.Z`. The tag push
-  triggers the workflow.
-- **First publish of an already-tagged version** (e.g. `v0.1.0` tagged before
-  this workflow existed): run the **Release** workflow manually from the Actions
-  tab (`workflow_dispatch`).
+> Trusted Publishing cannot do the **first** publish of a brand-new package
+> (npm requires the package to exist first). `0.1.0` was published manually with
+> `npm publish --auth-type=web`; every release after that is automated.
 
-Provenance requires the repository to be public and is published via GitHub
-OIDC (`id-token: write`); no extra setup beyond `NPM_TOKEN`.
+To cut a release:
+
+1. Bump `package.json#version` (semver) and add a `CHANGELOG.md` entry in a PR.
+2. Merge the PR to `main`. The workflow detects the new version and publishes it.
+
+Merges that don't change the version simply skip the publish step.
 
 ## Quality gate invariants
 
