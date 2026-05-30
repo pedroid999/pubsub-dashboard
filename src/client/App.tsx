@@ -1,4 +1,5 @@
 import { SessionBadge } from './components/SessionBadge.js';
+import { DiagnosticsPanel } from './components/DiagnosticsPanel.js';
 
 export function App(): JSX.Element {
   return (
@@ -12,6 +13,10 @@ export function App(): JSX.Element {
           Local-first Google Cloud Pub/Sub dashboard. Publish, subscribe and inspect messages — all
           on 127.0.0.1, authenticated via gcloud ADC.
         </p>
+        <section className="mt-8">
+          <h2 className="mb-2 text-sm font-semibold text-slate-700">Diagnostics</h2>
+          <DiagnosticsPanel />
+        </section>
       </main>
     </div>
   );

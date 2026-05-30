@@ -150,32 +150,32 @@ to be meaningful.
 
 ### CSP middleware
 
-- [ ] T058 [P] [US3] Test `tests/unit/middleware.csp.test.ts` (T-HTTP-030): HTML responses carry the exact CSP string from R9; JSON responses do not.
-- [ ] T059 [US3] Implement `src/server/middleware/csp.ts` and wire into `createApp`. *Dependency: T058.*
+- [x] T058 [P] [US3] Test `tests/unit/middleware.csp.test.ts` (T-HTTP-030): HTML responses carry the exact CSP string from R9; JSON responses do not.
+- [x] T059 [US3] Implement `src/server/middleware/csp.ts` and wire into `createApp`. *Dependency: T058.*
 
 ### Logging redaction
 
-- [ ] T060 [P] [US3] Test `tests/unit/middleware.redact.test.ts`: pino instance configured with the redact paths from R8; normal mode → `message.data`, `authorization`, `credentials` all `[REDACTED]`; verbose mode → `message.data` revealed, credentials still `[REDACTED]`.
-- [ ] T061 [US3] Update `src/server/middleware/trace.ts` (or extract `src/server/middleware/redact.ts`) to apply the redact config from R8. *Dependency: T060.*
+- [x] T060 [P] [US3] Test `tests/unit/middleware.redact.test.ts`: pino instance configured with the redact paths from R8; normal mode → `message.data`, `authorization`, `credentials` all `[REDACTED]`; verbose mode → `message.data` revealed, credentials still `[REDACTED]`.
+- [x] T061 [US3] Update `src/server/middleware/trace.ts` (or extract `src/server/middleware/redact.ts`) to apply the redact config from R8. *Dependency: T060.*
 
 ### Diagnostics capture + endpoint + UI
 
-- [ ] T062 [P] [US3] Test `tests/unit/middleware.capture.test.ts`: ring buffer FIFO at `DIAGNOSTICS_CAPACITY = 50`; redaction applied **at capture time**, not read time; trace id matches request.
-- [ ] T063 [US3] Implement `src/server/middleware/capture.ts` (exports `getRecentDiagnostics(limit)` + middleware). *Dependency: T062.*
-- [ ] T064 [P] [US3] Contract test `tests/integration/http.diagnostics.test.ts` covering T-HTTP-020..024 plus `limit` query param validation (400 on invalid).
-- [ ] T065 [US3] Implement `src/server/routes/diagnostics.ts` (`GET /api/diagnostics`) and register. *Dependency: T064.*
-- [ ] T066 [P] [US3] Component test `tests/unit/client.DiagnosticsPanel.test.tsx`: renders most-recent 20 records newest-first, shows trace id, expands to show request/response JSON in a `<pre>` block.
-- [ ] T067 [US3] Implement `src/client/components/DiagnosticsPanel.tsx` and render it in `App.tsx`. *Dependency: T066.*
+- [x] T062 [P] [US3] Test `tests/unit/middleware.capture.test.ts`: ring buffer FIFO at `DIAGNOSTICS_CAPACITY = 50`; redaction applied **at capture time**, not read time; trace id matches request.
+- [x] T063 [US3] Implement `src/server/middleware/capture.ts` (exports `getRecentDiagnostics(limit)` + middleware). *Dependency: T062.*
+- [x] T064 [P] [US3] Contract test `tests/integration/http.diagnostics.test.ts` covering T-HTTP-020..024 plus `limit` query param validation (400 on invalid).
+- [x] T065 [US3] Implement `src/server/routes/diagnostics.ts` (`GET /api/diagnostics`) and register. *Dependency: T064.*
+- [x] T066 [P] [US3] Component test `tests/unit/client.DiagnosticsPanel.test.tsx`: renders most-recent 20 records newest-first, shows trace id, expands to show request/response JSON in a `<pre>` block.
+- [x] T067 [US3] Implement `src/client/components/DiagnosticsPanel.tsx` and render it in `App.tsx`. *Dependency: T066.*
 
 ### Network-surface guarantees
 
-- [ ] T068 [P] [US3] Integration test `tests/integration/net.loopback.test.ts` (T-NET-001): start server on `127.0.0.1:<port>`; assert that `connect()` to the host's external IP on the same port is refused.
-- [ ] T069 [P] [US3] Integration test `tests/integration/net.outbound.test.ts` (T-NET-002): instrument `dns.lookup` and `net.connect`; exercise the dashboard for ~10 s of fake interactive traffic; assert every recorded outbound connection terminates at a host matching `/\.googleapis\.com$/`.
-- [ ] T070 [US3] If T068/T069 reveal a leak, fix in `src/server/boot.ts` (loopback enforcement) and/or `src/client/lib/api.ts` (no third-party fetch).
+- [x] T068 [P] [US3] Integration test `tests/integration/net.loopback.test.ts` (T-NET-001): start server on `127.0.0.1:<port>`; assert that `connect()` to the host's external IP on the same port is refused.
+- [x] T069 [P] [US3] Integration test `tests/integration/net.outbound.test.ts` (T-NET-002): instrument `dns.lookup` and `net.connect`; exercise the dashboard for ~10 s of fake interactive traffic; assert every recorded outbound connection terminates at a host matching `/\.googleapis\.com$/`.
+- [x] T070 [US3] If T068/T069 reveal a leak, fix in `src/server/boot.ts` (loopback enforcement) and/or `src/client/lib/api.ts` (no third-party fetch).
 
 ### Preferences invariant (v1 must-not-write)
 
-- [ ] T071 [P] [US3] Integration test `tests/integration/preferences.untouched.test.ts` (T-SCHEMA-062): boot → hit `/api/health` and `/api/session` → SIGINT; assert that `~/.config/pubsub-dashboard/preferences.json` does not exist OR was not modified.
+- [x] T071 [P] [US3] Integration test `tests/integration/preferences.untouched.test.ts` (T-SCHEMA-062): boot → hit `/api/health` and `/api/session` → SIGINT; assert that `~/.config/pubsub-dashboard/preferences.json` does not exist OR was not modified.
 
 **Checkpoint**: User Story 3 done. A security review can verify by inspection that the tool is safe to paste production payloads into.
 

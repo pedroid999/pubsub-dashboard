@@ -1,21 +1,25 @@
 import type { MiddlewareHandler } from 'hono';
-import { pino, type Logger, type LoggerOptions } from 'pino';
+import { pino, type Logger, type LoggerOptions, type DestinationStream } from 'pino';
 import { randomUUID } from 'node:crypto';
+import { redactPaths, REDACT_CENSOR } from './redact.js';
 
 export interface CreateLoggerOptions {
   level?: LoggerOptions['level'];
+  verbose?: boolean;
+  destination?: DestinationStream;
 }
 
 export function createLogger(opts: CreateLoggerOptions = {}): Logger {
-  return pino({
+  const options: LoggerOptions = {
     level: opts.level ?? 'info',
     base: { app: 'pubsub-dashboard' },
     redact: {
-      paths: ['*.message.data', '*.authorization', '*.credentials', 'req.headers.authorization'],
-      censor: '[REDACTED]',
+      paths: redactPaths(opts.verbose ?? false),
+      censor: REDACT_CENSOR,
       remove: false,
     },
-  });
+  };
+  return opts.destination ? pino(options, opts.destination) : pino(options);
 }
 
 export type TraceVars = {
