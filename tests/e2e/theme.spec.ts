@@ -11,83 +11,65 @@ const session: Session = {
   port: DEFAULT_PORT,
   startedAt: '2026-05-31T00:00:00.000Z',
   lastTraceId: null,
-  version: '0.1.0',
+  version: '0.4.0',
   nodeVersion: 'v20.0.0',
+};
+
+const mockAuth = {
+  getAccessToken: async () => 'fake-theme-token',
+  getCredentials: async () => ({ client_email: 'svc@theme.test' }),
 };
 
 let server: RunningServer;
 
 test.beforeAll(async () => {
-  const logger = createLogger({ verbose: false });
   server = await start({
     port: 0,
-    logger,
-    session: SessionSchema.parse(session),
+    logger: createLogger({ level: 'silent' }),
+    clientDir: 'dist/client',
+    getSession: async (traceId) => SessionSchema.parse({ ...session, lastTraceId: traceId }),
+    auth: mockAuth,
   });
 });
 
 test.afterAll(async () => {
-  await server.stop();
+  await server.close();
 });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`http://${BIND_ADDRESS}:${server.port}`);
+  await page.goto(server.url);
 });
 
 test('theme toggle is present in the header', async ({ page }) => {
-  const toggle = page.getByTestId('theme-toggle');
-  await expect(toggle).toBeVisible();
+  await expect(page.getByTestId('theme-toggle')).toBeVisible();
 });
 
-test('clicking the toggle cycles the theme class on <html>', async ({ page }) => {
-  const html = page.locator('html');
-
-  // Default: no stored pref → system → light (OS in CI is light)
-  // Click once → dark
+test('clicking the toggle writes a preference to localStorage', async ({ page }) => {
   await page.getByTestId('theme-toggle').click();
-  const hasDark = await html.evaluate((el) => el.classList.contains('dark'));
-  // The class state depends on which preference we landed on;
-  // just verify the toggle is interactive and the class changes deterministically.
-  // Click through the full cycle and verify localStorage is updated.
   const pref = await page.evaluate(() => localStorage.getItem('pubsub-dashboard:theme'));
   expect(['dark', 'light', 'system']).toContain(pref);
-  // Unused variable check
-  expect(typeof hasDark).toBe('boolean');
 });
 
-test('theme preference persists across page reload', async ({ page }) => {
-  // Set to dark via localStorage directly, then reload
-  await page.evaluate(() => {
-    localStorage.setItem('pubsub-dashboard:theme', 'dark');
-  });
+test('dark preference is applied on reload (no FOUC)', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('pubsub-dashboard:theme', 'dark'));
   await page.reload();
-
-  const html = page.locator('html');
-  const hasDark = await html.evaluate((el) => el.classList.contains('dark'));
+  const hasDark = await page.locator('html').evaluate((el) => el.classList.contains('dark'));
   expect(hasDark).toBe(true);
-
-  // The anti-FOUC script must have applied it before React mounted
-  const storedPref = await page.evaluate(() => localStorage.getItem('pubsub-dashboard:theme'));
-  expect(storedPref).toBe('dark');
 });
 
-test('light preference is respected after reload', async ({ page }) => {
+test('light preference is applied on reload', async ({ page }) => {
   await page.evaluate(() => {
+    document.documentElement.classList.add('dark');
     localStorage.setItem('pubsub-dashboard:theme', 'light');
   });
   await page.reload();
-
   const hasDark = await page.locator('html').evaluate((el) => el.classList.contains('dark'));
   expect(hasDark).toBe(false);
 });
 
-test('toggle aria-label describes the next action', async ({ page }) => {
-  // Set to dark, check aria-label says "Switch to light mode"
-  await page.evaluate(() => {
-    localStorage.setItem('pubsub-dashboard:theme', 'dark');
-  });
+test('toggle aria-label describes the next action when dark', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('pubsub-dashboard:theme', 'dark'));
   await page.reload();
-
   const label = await page.getByTestId('theme-toggle').getAttribute('aria-label');
   expect(label?.toLowerCase()).toContain('light');
 });
