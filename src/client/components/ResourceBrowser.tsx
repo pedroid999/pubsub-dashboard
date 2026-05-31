@@ -49,7 +49,7 @@ function SearchInput({
         onChange={(e) => onChange(e.target.value)}
         aria-label={label}
         data-testid={testId}
-        className="w-full rounded border border-slate-300 py-1.5 pl-8 pr-7 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="w-full rounded border border-slate-300 py-1.5 pl-8 pr-7 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
       />
       {value && (
         <button
@@ -147,12 +147,14 @@ export function ResourceBrowser({ projectId }: ResourceBrowserProps): JSX.Elemen
   }): JSX.Element {
     return (
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          {title}
+        </h3>
         <button
           type="button"
           aria-label={`Refresh ${title}`}
           onClick={onRefresh}
-          className="text-slate-400 hover:text-slate-600"
+          className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
         >
           <RefreshCw className="h-3.5 w-3.5" />
         </button>

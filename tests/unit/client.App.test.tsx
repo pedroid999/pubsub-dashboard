@@ -4,6 +4,7 @@ import { App } from '../../src/client/App.js';
 
 afterEach(() => {
   cleanup();
+  localStorage.clear();
   vi.restoreAllMocks();
 });
 

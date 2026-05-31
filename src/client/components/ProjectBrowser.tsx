@@ -85,7 +85,7 @@ export function ProjectBrowser({
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search projects"
           data-testid="project-search"
-          className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
         />
         {query && (
           <button
@@ -106,7 +106,7 @@ export function ProjectBrowser({
           No matching projects for &ldquo;{query}&rdquo;.
         </p>
       ) : (
-        <ul className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white">
+        <ul className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800">
           {filtered.map((project) => {
             const segments = highlightMatch(project.displayName, query);
             return (
@@ -115,12 +115,15 @@ export function ProjectBrowser({
                   type="button"
                   onClick={() => onSelectProject(project.projectId)}
                   data-testid={`project-item-${project.projectId}`}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm hover:bg-slate-50"
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
-                  <span className="font-medium text-slate-800">
+                  <span className="font-medium text-slate-800 dark:text-slate-200">
                     {segments.map((seg, i) =>
                       seg.highlight ? (
-                        <mark key={i} className="bg-yellow-100 text-yellow-900">
+                        <mark
+                          key={i}
+                          className="bg-yellow-100 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-200"
+                        >
                           {seg.text}
                         </mark>
                       ) : (
@@ -128,7 +131,9 @@ export function ProjectBrowser({
                       ),
                     )}
                   </span>
-                  <span className="font-mono text-xs text-slate-400">{project.projectId}</span>
+                  <span className="font-mono text-xs text-slate-400 dark:text-slate-500">
+                    {project.projectId}
+                  </span>
                 </button>
               </li>
             );

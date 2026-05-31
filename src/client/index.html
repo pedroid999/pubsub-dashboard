@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pub/Sub Dashboard</title>
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('pubsub-dashboard:theme');
+          var v = s === 'dark' || s === 'light' || s === 'system';
+          var p = v ? s : 'system';
+          var d = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (p === 'dark' || (p === 'system' && d)) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (_) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
