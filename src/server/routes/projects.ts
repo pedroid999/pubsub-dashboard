@@ -89,7 +89,11 @@ async function fetchAllProjects(token: string, fetchFn: typeof fetch): Promise<G
       if (httpCode === 403 || httpCode === 401) {
         throw Object.assign(new Error('PERMISSION_DENIED'), { code: 'PERMISSION_DENIED' });
       }
-      throw Object.assign(new Error('INTERNAL_ERROR'), { code: 'INTERNAL_ERROR' });
+      const crmMsg = body.error?.message ?? `HTTP ${httpCode}`;
+      throw Object.assign(new Error(`CRM error ${httpCode}: ${crmMsg}`), {
+        code: 'INTERNAL_ERROR',
+        httpStatus: httpCode,
+      });
     }
 
     const data = (await res.json()) as CrmResponse;
@@ -112,6 +116,7 @@ export function registerProjects(app: Hono<AppEnv>, deps: ProjectsDeps): void {
 
   app.get('/api/projects', async (c) => {
     const traceId = c.var.traceId;
+    const log = c.var.logger;
     let token: string;
     try {
       token = await deps.adc.getAccessToken();
@@ -128,7 +133,8 @@ export function registerProjects(app: Hono<AppEnv>, deps: ProjectsDeps): void {
       const projects = await fetchAllProjects(token, fetchFn);
       return c.json({ projects, traceId });
     } catch (err: unknown) {
-      const e = err as { code?: string; quotaName?: string; name?: string };
+      const e = err as { code?: string; quotaName?: string; name?: string; httpStatus?: number };
+      log.error({ err, code: e.code, httpStatus: e.httpStatus }, 'project list failed');
 
       if (e.name === 'AbortError' || e.code === 'TIMEOUT') {
         const body: PubSubError = {
