@@ -15,6 +15,7 @@ import { start as defaultStart, type RunningServer } from '../boot.js';
 import { createSessionStore } from '../session.js';
 import { BIND_ADDRESS } from '../../shared/port.js';
 import { demoOverridesFromEnv } from './demo.js';
+import { PubSub } from '@google-cloud/pubsub';
 
 const HELP_TEXT = `pubsub-dashboard — local-first Google Cloud Pub/Sub dashboard
 
@@ -116,6 +117,8 @@ export async function runCli(deps: RunCliDeps): Promise<number> {
       port: args.port,
       logger: runLogger,
       clientDir,
+      auth: adc,
+      createPubSubClient: (projectId: string) => new PubSub({ projectId }),
       getSession: async (traceId: string) => {
         store.setLastTraceId(traceId);
         return store.snapshot();

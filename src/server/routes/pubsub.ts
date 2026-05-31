@@ -3,9 +3,18 @@ import type { AppEnv } from '../app.js';
 import type { Topic, Subscription, PubSubError } from '../schemas/pubsub.js';
 
 export interface PubSubClientLike {
-  getTopics(): Promise<[Array<{ name: string }>]>;
+  getTopics(): Promise<[Array<{ name: string }>, ...unknown[]]>;
   getSubscriptions(): Promise<
-    [Array<{ name: string; metadata?: { topic?: string; pushConfig?: { pushEndpoint?: string } } }>]
+    [
+      Array<{
+        name: string;
+        metadata?: {
+          topic?: string | null;
+          pushConfig?: { pushEndpoint?: string | null } | null;
+        } | null;
+      }>,
+      ...unknown[],
+    ]
   >;
 }
 
