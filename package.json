@@ -1,6 +1,6 @@
 {
   "name": "pubsub-dashboard",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Local-first developer dashboard for Google Cloud Pub/Sub — runs entirely on 127.0.0.1, authenticates via gcloud ADC, zero telemetry.",
   "license": "Apache-2.0",
   "type": "module",
@@ -47,6 +47,7 @@
     "verify": "npm run lint && npm run format:check && npm run typecheck && npm run test && npm run e2e"
   },
   "dependencies": {
+    "@google-cloud/pubsub": "^5.3.0",
     "@hono/node-server": "^1.13.0",
     "google-auth-library": "^9.14.0",
     "hono": "^4.6.0",

@@ -8,12 +8,18 @@ import { registerHealth } from './routes/health.js';
 import { registerSession, type GetSession } from './routes/session.js';
 import { registerDiagnostics } from './routes/diagnostics.js';
 import { registerStatic } from './static.js';
+import type { AdcContext } from './auth/index.js';
+import { registerProjects } from './routes/projects.js';
+import { registerPubSub, type CreatePubSubClientFn } from './routes/pubsub.js';
 
 export interface BuildServerDeps {
   logger: Logger;
   port: number;
   clientDir: string;
   getSession: GetSession;
+  auth?: AdcContext;
+  fetchImpl?: typeof fetch;
+  createPubSubClient?: CreatePubSubClientFn;
   startedAtMs?: number;
   verbose?: boolean;
   diagnostics?: DiagnosticsBuffer;
@@ -37,6 +43,13 @@ export function buildServer(deps: BuildServerDeps): Hono<AppEnv> {
   registerHealth(app, { startedAtMs: deps.startedAtMs ?? Date.now() });
   registerSession(app, { getSession: deps.getSession });
   registerDiagnostics(app, { buffer: diagnostics });
+
+  if (deps.auth) {
+    registerProjects(app, { adc: deps.auth, fetchImpl: deps.fetchImpl });
+    if (deps.createPubSubClient) {
+      registerPubSub(app, { createPubSubClient: deps.createPubSubClient });
+    }
+  }
 
   // Unknown API routes must 404 as JSON, never fall through to the SPA.
   app.all('/api/*', (c) =>

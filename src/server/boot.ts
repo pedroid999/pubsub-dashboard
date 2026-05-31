@@ -1,6 +1,6 @@
 import { serve } from '@hono/node-server';
 import type { Logger } from 'pino';
-import { buildServer } from './server.js';
+import { buildServer, type BuildServerDeps } from './server.js';
 import { PortInUseError } from './auth/errors.js';
 import { BIND_ADDRESS } from '../shared/port.js';
 import type { GetSession } from './routes/session.js';
@@ -10,6 +10,9 @@ export interface StartOptions {
   logger: Logger;
   clientDir: string;
   getSession: GetSession;
+  auth?: BuildServerDeps['auth'];
+  fetchImpl?: BuildServerDeps['fetchImpl'];
+  createPubSubClient?: BuildServerDeps['createPubSubClient'];
 }
 
 export interface RunningServer {
@@ -29,6 +32,9 @@ export function start(opts: StartOptions): Promise<RunningServer> {
     clientDir: opts.clientDir,
     getSession: opts.getSession,
     startedAtMs: Date.now(),
+    auth: opts.auth,
+    fetchImpl: opts.fetchImpl,
+    createPubSubClient: opts.createPubSubClient,
   });
 
   return new Promise<RunningServer>((resolve, reject) => {
