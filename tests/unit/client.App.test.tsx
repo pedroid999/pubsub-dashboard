@@ -52,15 +52,24 @@ describe('App (composition)', () => {
         return Promise.resolve(
           new Response(
             JSON.stringify({
-              projectId: 'my-proj', identity: 'dev@example.com', bindAddress: '127.0.0.1',
-              port: 4321, startedAt: '2026-05-29T20:00:00.000Z', lastTraceId: null,
-              version: '0.1.0', nodeVersion: 'v20.18.0',
+              projectId: 'my-proj',
+              identity: 'dev@example.com',
+              bindAddress: '127.0.0.1',
+              port: 4321,
+              startedAt: '2026-05-29T20:00:00.000Z',
+              lastTraceId: null,
+              version: '0.1.0',
+              nodeVersion: 'v20.18.0',
             }),
             { status: 200, headers },
           ),
         );
       }
-      if (url.includes('/api/projects') && !url.includes('/topics') && !url.includes('/subscriptions')) {
+      if (
+        url.includes('/api/projects') &&
+        !url.includes('/topics') &&
+        !url.includes('/subscriptions')
+      ) {
         return Promise.resolve(
           new Response(
             JSON.stringify({
@@ -71,7 +80,12 @@ describe('App (composition)', () => {
           ),
         );
       }
-      return Promise.resolve(new Response(JSON.stringify({ topics: [], subscriptions: [], traceId }), { status: 200, headers }));
+      return Promise.resolve(
+        new Response(JSON.stringify({ topics: [], subscriptions: [], traceId }), {
+          status: 200,
+          headers,
+        }),
+      );
     }) as typeof fetch);
 
     render(<App />);

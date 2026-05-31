@@ -72,10 +72,10 @@ and then inspect the Pub/Sub topics and subscriptions within each project.
 
 Two roles must be granted on **each project** you want to browse:
 
-| Role | Purpose |
-| ---- | ------- |
+| Role                                                                                  | Purpose                                                  |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | `roles/resourcemanager.projects.list` (or `resourcemanager.projects.list` permission) | List all GCP projects via the Cloud Resource Manager API |
-| `roles/pubsub.viewer` | List topics and subscriptions within a project |
+| `roles/pubsub.viewer`                                                                 | List topics and subscriptions within a project           |
 
 Grant `pubsub.viewer` to your account with:
 
@@ -98,11 +98,11 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> \
 
 ### API endpoints
 
-| Endpoint | Description |
-| -------- | ----------- |
-| `GET /api/projects` | Lists all GCP projects accessible to the current ADC identity |
-| `GET /api/projects/:projectId/topics` | Lists Pub/Sub topics in the given project |
-| `GET /api/projects/:projectId/subscriptions` | Lists Pub/Sub subscriptions in the given project |
+| Endpoint                                     | Description                                                   |
+| -------------------------------------------- | ------------------------------------------------------------- |
+| `GET /api/projects`                          | Lists all GCP projects accessible to the current ADC identity |
+| `GET /api/projects/:projectId/topics`        | Lists Pub/Sub topics in the given project                     |
+| `GET /api/projects/:projectId/subscriptions` | Lists Pub/Sub subscriptions in the given project              |
 
 All three endpoints propagate a `traceId` (UUID) in both the response body and
 the `X-Trace-Id` header so that individual requests can be correlated in logs.

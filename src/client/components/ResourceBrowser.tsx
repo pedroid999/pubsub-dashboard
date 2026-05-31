@@ -16,10 +16,7 @@ type PanelState<T> =
   | { status: 'error'; message: string; code: string };
 
 async function fetchTopics(projectId: string): Promise<Topic[]> {
-  const { data } = await apiGet(
-    `/api/projects/${projectId}/topics`,
-    TopicsResponseSchema,
-  );
+  const { data } = await apiGet(`/api/projects/${projectId}/topics`, TopicsResponseSchema);
   return data.topics;
 }
 
@@ -85,8 +82,7 @@ function PanelError({
       <p className="font-medium">{message}</p>
       {code === 'PERMISSION_DENIED' && (
         <p className="mt-1">
-          Missing IAM role:{' '}
-          <span className="font-mono">roles/pubsub.viewer</span>
+          Missing IAM role: <span className="font-mono">roles/pubsub.viewer</span>
         </p>
       )}
       <button

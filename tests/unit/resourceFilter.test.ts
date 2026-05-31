@@ -55,14 +55,22 @@ describe('filterByQuery', () => {
 
   it('matches items by subLabel case-insensitively (FR-017)', () => {
     const subs = [
-      { name: 'sub-1', displayName: 'alpha-sub [pull]', subLabel: 'projects/p/topics/PAYMENTS-TOPIC' },
+      {
+        name: 'sub-1',
+        displayName: 'alpha-sub [pull]',
+        subLabel: 'projects/p/topics/PAYMENTS-TOPIC',
+      },
     ];
     expect(filterByQuery(subs, 'payments-topic')).toHaveLength(1);
   });
 
   it('returns item when both displayName and subLabel match (no duplicates)', () => {
     const subs = [
-      { name: 'sub-1', displayName: 'payments-sub [pull]', subLabel: 'projects/p/topics/payments-topic' },
+      {
+        name: 'sub-1',
+        displayName: 'payments-sub [pull]',
+        subLabel: 'projects/p/topics/payments-topic',
+      },
     ];
     expect(filterByQuery(subs, 'payments')).toHaveLength(1);
   });

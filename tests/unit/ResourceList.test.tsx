@@ -115,11 +115,13 @@ describe('ResourceList', () => {
   it('renders subLabel below displayName when present (FR-006)', () => {
     render(
       <ResourceList
-        items={[{
-          name: 'projects/p/subscriptions/pay-sub',
-          displayName: 'pay-sub [pull]',
-          subLabel: 'projects/p/topics/payments',
-        }]}
+        items={[
+          {
+            name: 'projects/p/subscriptions/pay-sub',
+            displayName: 'pay-sub [pull]',
+            subLabel: 'projects/p/topics/payments',
+          },
+        ]}
         query=""
         onSelect={vi.fn()}
         emptyMessage="No subs"

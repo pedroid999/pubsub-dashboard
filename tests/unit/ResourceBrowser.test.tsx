@@ -11,9 +11,13 @@ const HEADERS = new Headers({ 'x-trace-id': TRACE, 'content-type': 'application/
 function mockFetch(topicsBody: unknown, subsBody: unknown) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(((url: string) => {
     if (url.includes('/topics')) {
-      return Promise.resolve(new Response(JSON.stringify(topicsBody), { status: 200, headers: HEADERS }));
+      return Promise.resolve(
+        new Response(JSON.stringify(topicsBody), { status: 200, headers: HEADERS }),
+      );
     }
-    return Promise.resolve(new Response(JSON.stringify(subsBody), { status: 200, headers: HEADERS }));
+    return Promise.resolve(
+      new Response(JSON.stringify(subsBody), { status: 200, headers: HEADERS }),
+    );
   }) as typeof fetch);
 }
 
@@ -24,15 +28,31 @@ function wrapper({ children }: { children: React.ReactNode }) {
 describe('ResourceBrowser', () => {
   it('renders topics and subscriptions after load', async () => {
     mockFetch(
-      { projects: [], topics: [{ name: 'projects/p/topics/payments', displayName: 'payments' }], traceId: TRACE },
-      { subscriptions: [{ name: 'projects/p/subscriptions/payments-sub', displayName: 'payments-sub', topicName: 'projects/p/topics/payments', deliveryType: 'pull' }], traceId: TRACE },
+      {
+        projects: [],
+        topics: [{ name: 'projects/p/topics/payments', displayName: 'payments' }],
+        traceId: TRACE,
+      },
+      {
+        subscriptions: [
+          {
+            name: 'projects/p/subscriptions/payments-sub',
+            displayName: 'payments-sub',
+            topicName: 'projects/p/topics/payments',
+            deliveryType: 'pull',
+          },
+        ],
+        traceId: TRACE,
+      },
     );
 
     render(<ResourceBrowser projectId="my-proj" />, { wrapper });
 
     await waitFor(() => {
       expect(screen.getByTestId('resource-item-projects/p/topics/payments')).toBeTruthy();
-      expect(screen.getByTestId('resource-item-projects/p/subscriptions/payments-sub')).toBeTruthy();
+      expect(
+        screen.getByTestId('resource-item-projects/p/subscriptions/payments-sub'),
+      ).toBeTruthy();
     });
   });
 
@@ -46,7 +66,12 @@ describe('ResourceBrowser', () => {
           ),
         );
       }
-      return Promise.resolve(new Response(JSON.stringify({ subscriptions: [], traceId: TRACE }), { status: 200, headers: HEADERS }));
+      return Promise.resolve(
+        new Response(JSON.stringify({ subscriptions: [], traceId: TRACE }), {
+          status: 200,
+          headers: HEADERS,
+        }),
+      );
     }) as typeof fetch);
 
     render(<ResourceBrowser projectId="my-proj" />, { wrapper });
@@ -80,10 +105,7 @@ describe('ResourceBrowser', () => {
   });
 
   it('shows empty subscription state', async () => {
-    mockFetch(
-      { topics: [], traceId: TRACE },
-      { subscriptions: [], traceId: TRACE },
-    );
+    mockFetch({ topics: [], traceId: TRACE }, { subscriptions: [], traceId: TRACE });
 
     render(<ResourceBrowser projectId="my-proj" />, { wrapper });
 
@@ -96,7 +118,12 @@ describe('ResourceBrowser', () => {
   it('shows error alert when subscriptions fetch fails', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(((url: string) => {
       if (url.includes('/topics')) {
-        return Promise.resolve(new Response(JSON.stringify({ topics: [], traceId: TRACE }), { status: 200, headers: HEADERS }));
+        return Promise.resolve(
+          new Response(JSON.stringify({ topics: [], traceId: TRACE }), {
+            status: 200,
+            headers: HEADERS,
+          }),
+        );
       }
       return Promise.resolve(
         new Response(
@@ -118,7 +145,12 @@ describe('ResourceBrowser', () => {
       { topics: [], traceId: TRACE },
       {
         subscriptions: [
-          { name: 'projects/p/subscriptions/pay-sub', displayName: 'pay-sub', topicName: 'projects/p/topics/pay', deliveryType: 'pull' },
+          {
+            name: 'projects/p/subscriptions/pay-sub',
+            displayName: 'pay-sub',
+            topicName: 'projects/p/topics/pay',
+            deliveryType: 'pull',
+          },
         ],
         traceId: TRACE,
       },
@@ -126,9 +158,7 @@ describe('ResourceBrowser', () => {
 
     render(<ResourceBrowser projectId="my-proj" />, { wrapper });
 
-    await waitFor(() =>
-      screen.getByTestId('resource-item-projects/p/subscriptions/pay-sub'),
-    );
+    await waitFor(() => screen.getByTestId('resource-item-projects/p/subscriptions/pay-sub'));
     fireEvent.click(screen.getByTestId('resource-item-projects/p/subscriptions/pay-sub'));
 
     expect(screen.getByTestId('resource-item-projects/p/subscriptions/pay-sub')).toBeTruthy();
@@ -139,7 +169,12 @@ describe('ResourceBrowser', () => {
       { topics: [], traceId: TRACE },
       {
         subscriptions: [
-          { name: 'projects/p/subscriptions/pay-sub', displayName: 'pay-sub', topicName: 'projects/p/topics/payments', deliveryType: 'pull' },
+          {
+            name: 'projects/p/subscriptions/pay-sub',
+            displayName: 'pay-sub',
+            topicName: 'projects/p/topics/payments',
+            deliveryType: 'pull',
+          },
         ],
         traceId: TRACE,
       },
@@ -157,8 +192,18 @@ describe('ResourceBrowser', () => {
       { topics: [], traceId: TRACE },
       {
         subscriptions: [
-          { name: 'projects/p/subscriptions/alpha-sub', displayName: 'alpha-sub', topicName: 'projects/p/topics/payments', deliveryType: 'pull' },
-          { name: 'projects/p/subscriptions/beta-sub', displayName: 'beta-sub', topicName: 'projects/p/topics/orders', deliveryType: 'push' },
+          {
+            name: 'projects/p/subscriptions/alpha-sub',
+            displayName: 'alpha-sub',
+            topicName: 'projects/p/topics/payments',
+            deliveryType: 'pull',
+          },
+          {
+            name: 'projects/p/subscriptions/beta-sub',
+            displayName: 'beta-sub',
+            topicName: 'projects/p/topics/orders',
+            deliveryType: 'push',
+          },
         ],
         traceId: TRACE,
       },
@@ -185,7 +230,12 @@ describe('ResourceBrowser', () => {
           ),
         );
       }
-      return Promise.resolve(new Response(JSON.stringify({ subscriptions: [], traceId: TRACE }), { status: 200, headers: HEADERS }));
+      return Promise.resolve(
+        new Response(JSON.stringify({ subscriptions: [], traceId: TRACE }), {
+          status: 200,
+          headers: HEADERS,
+        }),
+      );
     }) as typeof fetch);
 
     render(<ResourceBrowser projectId="my-proj" />, { wrapper });

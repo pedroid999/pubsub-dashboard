@@ -1,11 +1,7 @@
 import type { Hono } from 'hono';
 import type { AppEnv } from '../app.js';
 import type { AdcContext } from '../auth/index.js';
-import {
-  GcpProjectSchema,
-  type GcpProject,
-  type PubSubError,
-} from '../schemas/pubsub.js';
+import { GcpProjectSchema, type GcpProject, type PubSubError } from '../schemas/pubsub.js';
 
 const CRM_BASE = 'https://cloudresourcemanager.googleapis.com/v3/projects';
 const FETCH_TIMEOUT_MS = 8_000;
@@ -41,20 +37,14 @@ interface CrmError {
 
 function extractQuotaName(details: CrmErrorDetail[]): string | undefined {
   for (const d of details) {
-    if (
-      d['@type'] === 'type.googleapis.com/google.rpc.ErrorInfo' &&
-      d.metadata?.quota_metric
-    ) {
+    if (d['@type'] === 'type.googleapis.com/google.rpc.ErrorInfo' && d.metadata?.quota_metric) {
       return d.metadata.quota_metric;
     }
   }
   return undefined;
 }
 
-async function fetchAllProjects(
-  token: string,
-  fetchFn: typeof fetch,
-): Promise<GcpProject[]> {
+async function fetchAllProjects(token: string, fetchFn: typeof fetch): Promise<GcpProject[]> {
   const all: GcpProject[] = [];
   let pageToken: string | undefined;
   const deadline = Date.now() + FETCH_TIMEOUT_MS;
@@ -117,10 +107,7 @@ async function fetchAllProjects(
   return all;
 }
 
-export function registerProjects(
-  app: Hono<AppEnv>,
-  deps: ProjectsDeps,
-): void {
+export function registerProjects(app: Hono<AppEnv>, deps: ProjectsDeps): void {
   const fetchFn = deps.fetchImpl ?? fetch;
 
   app.get('/api/projects', async (c) => {
@@ -131,8 +118,7 @@ export function registerProjects(
     } catch {
       const body: PubSubError = {
         code: 'PERMISSION_DENIED',
-        message:
-          'ADC credentials expired or missing. Run: gcloud auth application-default login',
+        message: 'ADC credentials expired or missing. Run: gcloud auth application-default login',
         traceId,
       };
       return c.json(body, 401);

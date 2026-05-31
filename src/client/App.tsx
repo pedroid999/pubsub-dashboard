@@ -42,8 +42,7 @@ function AppContent(): JSX.Element {
             ← Projects
           </button>
           <h2 className="mb-4 text-sm font-semibold text-slate-700">
-            Project:{' '}
-            <span className="font-mono font-medium">{state.activeProjectId}</span>
+            Project: <span className="font-mono font-medium">{state.activeProjectId}</span>
           </h2>
           <ResourceBrowser projectId={state.activeProjectId} />
         </section>

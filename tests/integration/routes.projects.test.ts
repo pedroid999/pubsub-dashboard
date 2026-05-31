@@ -197,9 +197,9 @@ describe('GET /api/projects', () => {
   });
 
   it('returns 500 INTERNAL_ERROR when CRM returns HTTP 500 (covers lines 102-103)', async () => {
-    const mockFetch = vi.fn().mockResolvedValueOnce(
-      new Response(JSON.stringify({}), { status: 500 }),
-    );
+    const mockFetch = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({}), { status: 500 }));
     const app = buildServer({
       logger,
       port: 0,
@@ -243,9 +243,11 @@ describe('GET /api/projects', () => {
   });
 
   it('returns 504 TIMEOUT when fetch throws a timeout (T011)', async () => {
-    const mockFetch = vi.fn().mockRejectedValueOnce(
-      Object.assign(new Error('The operation was aborted'), { name: 'AbortError' }),
-    );
+    const mockFetch = vi
+      .fn()
+      .mockRejectedValueOnce(
+        Object.assign(new Error('The operation was aborted'), { name: 'AbortError' }),
+      );
 
     const app = buildServer({
       logger,
@@ -270,14 +272,11 @@ describe('GET /api/projects', () => {
   });
 
   it('returns an independent response on a second call — endpoint is stateless (T030)', async () => {
-    const projectList = [
-      { projectId: 'proj-a', displayName: 'Project A', state: 'ACTIVE' },
-    ];
+    const projectList = [{ projectId: 'proj-a', displayName: 'Project A', state: 'ACTIVE' }];
     const makeOkResponse = () =>
-      new Response(
-        JSON.stringify({ projects: projectList, nextPageToken: undefined }),
-        { status: 200 },
-      );
+      new Response(JSON.stringify({ projects: projectList, nextPageToken: undefined }), {
+        status: 200,
+      });
 
     const mockFetch = vi.fn().mockResolvedValue(makeOkResponse());
     const app = buildServer({

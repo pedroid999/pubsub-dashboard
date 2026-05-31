@@ -13,7 +13,10 @@ type State =
   | { status: 'ready'; projects: GcpProject[] }
   | { status: 'error'; code: string; message: string };
 
-export function ProjectBrowser({ loadProjects, onSelectProject }: ProjectBrowserProps): JSX.Element {
+export function ProjectBrowser({
+  loadProjects,
+  onSelectProject,
+}: ProjectBrowserProps): JSX.Element {
   const [state, setState] = useState<State>({ status: 'loading' });
   const [query, setQuery] = useState('');
 
@@ -61,8 +64,7 @@ export function ProjectBrowser({ loadProjects, onSelectProject }: ProjectBrowser
         <p className="font-medium">{state.message}</p>
         {state.code === 'PERMISSION_DENIED' && (
           <p className="mt-1 text-xs">
-            Missing permission:{' '}
-            <span className="font-mono">resourcemanager.projects.list</span>
+            Missing permission: <span className="font-mono">resourcemanager.projects.list</span>
           </p>
         )}
         {state.code === 'QUOTA_EXCEEDED' && (

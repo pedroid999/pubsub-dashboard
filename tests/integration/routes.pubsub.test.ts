@@ -29,18 +29,22 @@ function makeAuth() {
   };
 }
 
-function makePubSubClient(overrides: Partial<{
-  getTopics: () => Promise<unknown>;
-  getSubscriptions: () => Promise<unknown>;
-}> = {}): PubSubClientLike {
+function makePubSubClient(
+  overrides: Partial<{
+    getTopics: () => Promise<unknown>;
+    getSubscriptions: () => Promise<unknown>;
+  }> = {},
+): PubSubClientLike {
   return {
-    getTopics: vi.fn().mockResolvedValue([
-      [
-        { name: 'projects/my-proj/topics/payments' },
-        { name: 'projects/my-proj/topics/orders' },
-        { name: 'projects/my-proj/topics/inventory' },
-      ],
-    ]),
+    getTopics: vi
+      .fn()
+      .mockResolvedValue([
+        [
+          { name: 'projects/my-proj/topics/payments' },
+          { name: 'projects/my-proj/topics/orders' },
+          { name: 'projects/my-proj/topics/inventory' },
+        ],
+      ]),
     getSubscriptions: vi.fn().mockResolvedValue([
       [
         {
@@ -241,7 +245,10 @@ describe('Error paths for pubsub routes (T019)', () => {
   it('returns 429 QUOTA_EXCEEDED on gRPC code 8 with quotaName (T019)', async () => {
     const grpcError = Object.assign(new Error('RESOURCE_EXHAUSTED'), {
       code: 8,
-      metadata: { get: (k: string) => (k === 'quota_metric' ? ['pubsub.googleapis.com/quota/consumer/read'] : []) },
+      metadata: {
+        get: (k: string) =>
+          k === 'quota_metric' ? ['pubsub.googleapis.com/quota/consumer/read'] : [],
+      },
     });
     const client = makePubSubClient({
       getTopics: vi.fn().mockRejectedValue(grpcError),
@@ -318,7 +325,9 @@ describe('Error paths for pubsub routes (T019)', () => {
 
   it('returns 401 PERMISSION_DENIED from getSubscriptions (T019)', async () => {
     const client = makePubSubClient({
-      getSubscriptions: vi.fn().mockRejectedValue(Object.assign(new Error('PERMISSION_DENIED'), { code: 7 })),
+      getSubscriptions: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error('PERMISSION_DENIED'), { code: 7 })),
     });
     const app = buildServer({
       logger,

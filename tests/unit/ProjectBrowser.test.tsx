@@ -67,9 +67,9 @@ describe('ProjectBrowser', () => {
   });
 
   it('shows PERMISSION_DENIED error state with missing permission name (FR-010)', async () => {
-    const loadProjects = vi.fn().mockRejectedValue(
-      Object.assign(new Error('No permission'), { code: 'PERMISSION_DENIED' }),
-    );
+    const loadProjects = vi
+      .fn()
+      .mockRejectedValue(Object.assign(new Error('No permission'), { code: 'PERMISSION_DENIED' }));
     render(<ProjectBrowser loadProjects={loadProjects} onSelectProject={vi.fn()} />);
 
     await waitFor(() => {
@@ -79,9 +79,9 @@ describe('ProjectBrowser', () => {
   });
 
   it('shows QUOTA_EXCEEDED error state', async () => {
-    const loadProjects = vi.fn().mockRejectedValue(
-      Object.assign(new Error('Quota exceeded'), { code: 'QUOTA_EXCEEDED' }),
-    );
+    const loadProjects = vi
+      .fn()
+      .mockRejectedValue(Object.assign(new Error('Quota exceeded'), { code: 'QUOTA_EXCEEDED' }));
     render(<ProjectBrowser loadProjects={loadProjects} onSelectProject={vi.fn()} />);
 
     await waitFor(() => {

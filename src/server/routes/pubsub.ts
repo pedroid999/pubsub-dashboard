@@ -4,7 +4,9 @@ import type { Topic, Subscription, PubSubError } from '../schemas/pubsub.js';
 
 export interface PubSubClientLike {
   getTopics(): Promise<[Array<{ name: string }>]>;
-  getSubscriptions(): Promise<[Array<{ name: string; metadata?: { topic?: string; pushConfig?: { pushEndpoint?: string } } }>]>;
+  getSubscriptions(): Promise<
+    [Array<{ name: string; metadata?: { topic?: string; pushConfig?: { pushEndpoint?: string } } }>]
+  >;
 }
 
 export type CreatePubSubClientFn = (projectId: string) => PubSubClientLike;
@@ -89,11 +91,7 @@ export function registerPubSub(app: Hono<AppEnv>, deps: PubSubDeps): void {
   });
 }
 
-function handlePubSubError(
-  err: unknown,
-  traceId: string,
-  c: Context<AppEnv>,
-) {
+function handlePubSubError(err: unknown, traceId: string, c: Context<AppEnv>) {
   const e = err as { code?: number | string; name?: string };
 
   if (e.name === 'AbortError') {

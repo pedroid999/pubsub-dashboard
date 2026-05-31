@@ -40,7 +40,9 @@ describe('ContextIndicator', () => {
     renderWithCtx(
       makeCtx({
         activeProjectId: 'my-proj',
-        contextMap: new Map([['my-proj', { selectedTopicName: 'projects/my-proj/topics/payments' }]]),
+        contextMap: new Map([
+          ['my-proj', { selectedTopicName: 'projects/my-proj/topics/payments' }],
+        ]),
       }),
     );
     expect(screen.getByText('projects/my-proj/topics/payments')).toBeTruthy();
