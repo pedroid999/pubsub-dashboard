@@ -27,8 +27,10 @@ function PayloadView({ message }: { message: DisplayedMessage }): JSX.Element {
   if (message.dataEncoding === 'base64') {
     return (
       <div>
-        <span className="text-[10px] font-medium uppercase text-amber-600">binary (base64)</span>
-        <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded bg-slate-50 p-2 font-mono text-[11px] text-slate-700">
+        <span className="text-[10px] font-medium uppercase text-amber-600 dark:text-amber-400">
+          binary (base64)
+        </span>
+        <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded bg-slate-50 p-2 font-mono text-[11px] text-slate-700 dark:bg-slate-700 dark:text-slate-300">
           {message.data}
         </pre>
       </div>
@@ -36,7 +38,7 @@ function PayloadView({ message }: { message: DisplayedMessage }): JSX.Element {
   }
   const { formatted } = tryPrettyPrintJson(message.data);
   return (
-    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded bg-slate-50 p-2 font-mono text-[11px] text-slate-700">
+    <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded bg-slate-50 p-2 font-mono text-[11px] text-slate-700 dark:bg-slate-700 dark:text-slate-300">
       {formatted}
     </pre>
   );
@@ -60,7 +62,7 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
 
   if (!subscriptionName) {
     return (
-      <div className="rounded border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-center text-xs text-slate-500">
+      <div className="rounded border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-center text-xs text-slate-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400">
         Select a subscription to pull messages.
       </div>
     );
@@ -105,11 +107,16 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
   }
 
   return (
-    <div className="rounded border border-slate-200 bg-white p-3">
+    <div className="rounded border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Receive</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Receive
+        </h3>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] text-slate-400" title={subscriptionName}>
+          <span
+            className="font-mono text-[11px] text-slate-400 dark:text-slate-500"
+            title={subscriptionName}
+          >
             {subscriptionId}
           </span>
           <button
@@ -117,7 +124,7 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
             onClick={() => void onPull()}
             disabled={pullStatus.status === 'pulling'}
             data-testid="pull-button"
-            className="flex items-center gap-1 rounded bg-slate-700 px-2 py-1 text-[11px] font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+            className="flex items-center gap-1 rounded bg-slate-700 px-2 py-1 text-[11px] font-medium text-white hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-600 dark:hover:bg-slate-500"
           >
             <Download className="h-3 w-3" />
             {pullStatus.status === 'pulling' ? 'Pulling…' : 'Pull'}
@@ -178,7 +185,7 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
                 {Object.entries(m.attributes).map(([k, v]) => (
                   <span
                     key={k}
-                    className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600"
+                    className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600 dark:bg-slate-700 dark:text-slate-300"
                   >
                     {k}={v}
                   </span>

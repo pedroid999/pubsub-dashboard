@@ -35,7 +35,7 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
 
   if (!topicName) {
     return (
-      <div className="rounded border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-center text-xs text-slate-500">
+      <div className="rounded border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-center text-xs text-slate-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400">
         Select a topic to publish a message.
       </div>
     );
@@ -75,10 +75,15 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
   }
 
   return (
-    <div className="rounded border border-slate-200 bg-white p-3">
+    <div className="rounded border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Publish</h3>
-        <span className="font-mono text-[11px] text-slate-400" title={topicName}>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          Publish
+        </h3>
+        <span
+          className="font-mono text-[11px] text-slate-400 dark:text-slate-500"
+          title={topicName}
+        >
           {topicId}
         </span>
       </div>
@@ -90,7 +95,7 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
         aria-label="Message body"
         data-testid="publish-body"
         rows={4}
-        className="w-full rounded border border-slate-300 p-2 font-mono text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="w-full rounded border border-slate-300 p-2 font-mono text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-500"
       />
 
       <div className="mt-2">
@@ -102,7 +107,7 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
             type="button"
             onClick={() => setAttributes((rows) => [...rows, { key: '', value: '' }])}
             aria-label="Add attribute"
-            className="flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800"
+            className="flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
           >
             <Plus className="h-3 w-3" /> Add
           </button>
@@ -115,7 +120,7 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
               onChange={(e) => updateRow(i, { key: e.target.value })}
               placeholder="key"
               aria-label={`Attribute ${i + 1} key`}
-              className="w-1/3 rounded border border-slate-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none"
+              className="w-1/3 rounded border border-slate-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-500"
             />
             <input
               type="text"
@@ -123,7 +128,7 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
               onChange={(e) => updateRow(i, { value: e.target.value })}
               placeholder="value"
               aria-label={`Attribute ${i + 1} value`}
-              className="flex-1 rounded border border-slate-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none"
+              className="flex-1 rounded border border-slate-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-500"
             />
             <button
               type="button"

@@ -12,5 +12,12 @@
     "tests/unit/**/*.ts",
     "tests/integration/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "coverage", "src/client", "tests/**/*.tsx"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "src/client",
+    "tests/**/*.tsx",
+    "tests/unit/client.*.ts"
+  ]
 }

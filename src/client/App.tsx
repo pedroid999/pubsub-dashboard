@@ -7,6 +7,8 @@ import { ResourceBrowser } from './components/ResourceBrowser.js';
 import { MessagePublisher } from './components/MessagePublisher.js';
 import { MessageReceiver } from './components/MessageReceiver.js';
 import { ContextIndicator } from './components/ContextIndicator.js';
+import { ThemeProvider } from './lib/theme.js';
+import { ThemeToggle } from './components/ThemeToggle.js';
 import { ProjectsResponseSchema } from '../server/schemas/pubsub.js';
 import { apiGet } from './lib/api.js';
 
@@ -23,14 +25,18 @@ function AppContent(): JSX.Element {
       {!state.activeProjectId ? (
         <>
           <section className="mb-8">
-            <h2 className="mb-2 text-sm font-semibold text-slate-700">GCP Projects</h2>
+            <h2 className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+              GCP Projects
+            </h2>
             <ProjectBrowser
               loadProjects={loadProjects}
               onSelectProject={(projectId) => dispatch({ type: 'SELECT_PROJECT', projectId })}
             />
           </section>
           <section className="mt-8">
-            <h2 className="mb-2 text-sm font-semibold text-slate-700">Diagnostics</h2>
+            <h2 className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Diagnostics
+            </h2>
             <DiagnosticsPanel />
           </section>
         </>
@@ -39,11 +45,11 @@ function AppContent(): JSX.Element {
           <button
             type="button"
             onClick={() => dispatch({ type: 'NAVIGATE_BACK' })}
-            className="mb-4 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+            className="mb-4 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
           >
             ← Projects
           </button>
-          <h2 className="mb-4 text-sm font-semibold text-slate-700">
+          <h2 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
             Project: <span className="font-mono font-medium">{state.activeProjectId}</span>
           </h2>
           <ResourceBrowser projectId={state.activeProjectId} />
@@ -59,15 +65,20 @@ function AppContent(): JSX.Element {
 
 export function App(): JSX.Element {
   return (
-    <ResourceContextProvider>
-      <div className="min-h-screen bg-slate-50 text-slate-900">
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3">
-          <h1 className="text-base font-semibold">Pub/Sub Dashboard</h1>
-          <SessionBadge />
-        </header>
-        <ContextIndicator />
-        <AppContent />
-      </div>
-    </ResourceContextProvider>
+    <ThemeProvider>
+      <ResourceContextProvider>
+        <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100">
+          <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 dark:border-slate-700 dark:bg-slate-800">
+            <h1 className="text-base font-semibold">Pub/Sub Dashboard</h1>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <SessionBadge />
+            </div>
+          </header>
+          <ContextIndicator />
+          <AppContent />
+        </div>
+      </ResourceContextProvider>
+    </ThemeProvider>
   );
 }
