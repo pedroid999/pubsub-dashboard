@@ -9,7 +9,7 @@ description: "Task list template for feature implementation"
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: Test tasks are MANDATORY for this project per Constitution Principle II (Test-First, NON-NEGOTIABLE). Every user story MUST include contract, integration, and/or unit test tasks written BEFORE the corresponding implementation tasks. Vitest line and branch coverage MUST be ≥90%, and a Playwright E2E smoke task MUST exist for any feature that affects the `npx` boot path or the dashboard UI.
+**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -30,7 +30,7 @@ description: "Task list template for feature implementation"
   ============================================================================
   IMPORTANT: The tasks below are SAMPLE TASKS for illustration purposes only.
 
-  The /speckit.tasks command MUST replace these with actual tasks based on:
+  The /speckit-tasks command MUST replace these with actual tasks based on:
   - User stories from spec.md (with their priorities P1, P2, P3...)
   - Feature requirements from plan.md
   - Entities from data-model.md

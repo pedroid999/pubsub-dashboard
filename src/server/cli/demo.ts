@@ -1,9 +1,12 @@
 import type { AdcContext } from '../auth/index.js';
+import type { CreatePubSubClientFn } from '../routes/pubsub.js';
+import { createInMemoryPubSubClient } from './demoPubSub.js';
 
 export interface DemoOverrides {
   resolveAdc: () => Promise<AdcContext>;
   getActiveProject: () => Promise<string>;
   resolveIdentity: (adc: AdcContext) => Promise<string>;
+  createPubSubClient: CreatePubSubClientFn;
 }
 
 /**
@@ -31,5 +34,6 @@ export function demoOverridesFromEnv(env: NodeJS.ProcessEnv): DemoOverrides | nu
     resolveAdc: () => Promise.resolve(context),
     getActiveProject: () => Promise.resolve(projectId),
     resolveIdentity: () => Promise.resolve(identity),
+    createPubSubClient: createInMemoryPubSubClient(),
   };
 }

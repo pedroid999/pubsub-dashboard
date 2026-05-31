@@ -2,6 +2,26 @@ import type { Hono, Context } from 'hono';
 import type { AppEnv } from '../app.js';
 import type { Topic, Subscription, PubSubError } from '../schemas/pubsub.js';
 
+/**
+ * Raw shape of a single message returned by a synchronous pull. Mirrors the
+ * `@google-cloud/pubsub` `v1.SubscriberClient.pull` result at the
+ * external boundary; narrowed into `ReceivedMessage` by the messaging route.
+ */
+export interface RawReceivedMessage {
+  ackId?: string | null;
+  deliveryAttempt?: number | null;
+  message?: {
+    messageId?: string | null;
+    data?: Uint8Array | Buffer | string | null;
+    attributes?: Record<string, string> | null;
+    publishTime?:
+      | { seconds?: number | string | null; nanos?: number | null }
+      | string
+      | Date
+      | null;
+  } | null;
+}
+
 export interface PubSubClientLike {
   getTopics(): Promise<[Array<{ name: string }>, ...unknown[]]>;
   getSubscriptions(): Promise<
@@ -16,6 +36,12 @@ export interface PubSubClientLike {
       ...unknown[],
     ]
   >;
+  /** Publish a message to a topic (short name); resolves to the messageId. */
+  publish(topicName: string, data: Buffer, attributes: Record<string, string>): Promise<string>;
+  /** Synchronously pull up to `maxMessages` from a subscription (short name). */
+  pull(subscriptionName: string, maxMessages: number): Promise<RawReceivedMessage[]>;
+  /** Acknowledge ackIds against a subscription (short name). */
+  acknowledge(subscriptionName: string, ackIds: string[]): Promise<void>;
 }
 
 export type CreatePubSubClientFn = (projectId: string) => PubSubClientLike;

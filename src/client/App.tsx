@@ -4,6 +4,8 @@ import { ResourceContextProvider } from './components/ResourceContextProvider.js
 import { useResourceContext } from './lib/resourceContext.js';
 import { ProjectBrowser } from './components/ProjectBrowser.js';
 import { ResourceBrowser } from './components/ResourceBrowser.js';
+import { MessagePublisher } from './components/MessagePublisher.js';
+import { MessageReceiver } from './components/MessageReceiver.js';
 import { ContextIndicator } from './components/ContextIndicator.js';
 import { ProjectsResponseSchema } from '../server/schemas/pubsub.js';
 import { apiGet } from './lib/api.js';
@@ -45,6 +47,10 @@ function AppContent(): JSX.Element {
             Project: <span className="font-mono font-medium">{state.activeProjectId}</span>
           </h2>
           <ResourceBrowser projectId={state.activeProjectId} />
+          <div className="mt-6 grid grid-cols-2 gap-6">
+            <MessagePublisher projectId={state.activeProjectId} />
+            <MessageReceiver projectId={state.activeProjectId} />
+          </div>
         </section>
       )}
     </main>

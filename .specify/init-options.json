@@ -1,9 +1,10 @@
 {
-  "ai": "windsurf",
+  "ai": "claude",
+  "ai_skills": true,
   "branch_numbering": "sequential",
-  "context_file": ".windsurf/rules/specify-rules.md",
+  "context_file": "CLAUDE.md",
   "here": true,
-  "integration": "windsurf",
+  "integration": "claude",
   "script": "sh",
   "speckit_version": "0.8.16"
 }
