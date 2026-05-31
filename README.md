@@ -59,6 +59,54 @@ echo "pubsub-dashboard health: ok"
 A browser tab opens on `http://127.0.0.1:4321` showing the active project ID,
 your identity, and a Diagnostics panel with the most recent backend operation.
 
+## GCP Resource Browser
+
+The dashboard lets you browse all GCP projects accessible via your ADC credentials,
+and then inspect the Pub/Sub topics and subscriptions within each project.
+
+### Screenshot
+
+<!-- TODO: add screenshot once UI is finalised -->
+
+### Required IAM roles
+
+Two roles must be granted on **each project** you want to browse:
+
+| Role                                                                                  | Purpose                                                  |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `roles/resourcemanager.projects.list` (or `resourcemanager.projects.list` permission) | List all GCP projects via the Cloud Resource Manager API |
+| `roles/pubsub.viewer`                                                                 | List topics and subscriptions within a project           |
+
+Grant `pubsub.viewer` to your account with:
+
+```bash
+gcloud projects add-iam-policy-binding <PROJECT_ID> \
+  --member="user:<YOUR_EMAIL>" \
+  --role="roles/pubsub.viewer"
+```
+
+To list all your accessible projects the ADC account also needs
+`resourcemanager.projects.list`. On most GCP organisations this is already
+included in `roles/viewer` or `roles/browser`. If you only see a
+`PERMISSION_DENIED` error on the project list, grant it explicitly:
+
+```bash
+gcloud projects add-iam-policy-binding <PROJECT_ID> \
+  --member="user:<YOUR_EMAIL>" \
+  --role="roles/browser"
+```
+
+### API endpoints
+
+| Endpoint                                     | Description                                                   |
+| -------------------------------------------- | ------------------------------------------------------------- |
+| `GET /api/projects`                          | Lists all GCP projects accessible to the current ADC identity |
+| `GET /api/projects/:projectId/topics`        | Lists Pub/Sub topics in the given project                     |
+| `GET /api/projects/:projectId/subscriptions` | Lists Pub/Sub subscriptions in the given project              |
+
+All three endpoints propagate a `traceId` (UUID) in both the response body and
+the `X-Trace-Id` header so that individual requests can be correlated in logs.
+
 ## Supported OS
 
 macOS and Linux only. **Windows is not supported** in v1.
