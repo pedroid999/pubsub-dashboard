@@ -11,6 +11,7 @@ import { registerStatic } from './static.js';
 import type { AdcContext } from './auth/index.js';
 import { registerProjects } from './routes/projects.js';
 import { registerPubSub, type CreatePubSubClientFn } from './routes/pubsub.js';
+import { registerMessaging } from './routes/messaging.js';
 
 export interface BuildServerDeps {
   logger: Logger;
@@ -48,6 +49,7 @@ export function buildServer(deps: BuildServerDeps): Hono<AppEnv> {
     registerProjects(app, { adc: deps.auth, fetchImpl: deps.fetchImpl });
     if (deps.createPubSubClient) {
       registerPubSub(app, { createPubSubClient: deps.createPubSubClient });
+      registerMessaging(app, { createPubSubClient: deps.createPubSubClient });
     }
   }
 

@@ -15,7 +15,44 @@ import { start as defaultStart, type RunningServer } from '../boot.js';
 import { createSessionStore } from '../session.js';
 import { BIND_ADDRESS } from '../../shared/port.js';
 import { demoOverridesFromEnv } from './demo.js';
-import { PubSub } from '@google-cloud/pubsub';
+import { PubSub, v1 } from '@google-cloud/pubsub';
+import type {
+  CreatePubSubClientFn,
+  PubSubClientLike,
+  RawReceivedMessage,
+} from '../routes/pubsub.js';
+
+/**
+ * Real Pub/Sub adapter: high-level `PubSub` for topic/publish, and the
+ * `v1.SubscriberClient` (same package — no new dependency) for synchronous,
+ * on-demand pull/acknowledge. Pulled-but-unacknowledged messages redeliver
+ * after their ack deadline (non-destructive by default).
+ *
+ * This is thin SDK glue that talks to live Google Cloud APIs; it cannot be
+ * exercised in-process without credentials, so it is excluded from coverage
+ * (the demo seam — fully tested — drives the same PubSubClientLike contract).
+ */
+/* v8 ignore start */
+function createRealPubSubClient(projectId: string): PubSubClientLike {
+  const pubsub = new PubSub({ projectId });
+  const subClient = new v1.SubscriberClient();
+  return {
+    getTopics: () => pubsub.getTopics(),
+    getSubscriptions: () => pubsub.getSubscriptions(),
+    publish: (topicName, data, attributes) =>
+      pubsub.topic(topicName).publishMessage({ data, attributes }),
+    pull: async (subscriptionName, maxMessages) => {
+      const subscription = subClient.subscriptionPath(projectId, subscriptionName);
+      const [response] = await subClient.pull({ subscription, maxMessages });
+      return (response.receivedMessages ?? []) as RawReceivedMessage[];
+    },
+    acknowledge: async (subscriptionName, ackIds) => {
+      const subscription = subClient.subscriptionPath(projectId, subscriptionName);
+      await subClient.acknowledge({ subscription, ackIds });
+    },
+  };
+}
+/* v8 ignore stop */
 
 const HELP_TEXT = `pubsub-dashboard — local-first Google Cloud Pub/Sub dashboard
 
@@ -54,6 +91,7 @@ export interface RunCliDeps {
   clientDir?: string;
   version?: string;
   env?: NodeJS.ProcessEnv;
+  createPubSubClient?: CreatePubSubClientFn;
 }
 
 /**
@@ -93,6 +131,9 @@ export async function runCli(deps: RunCliDeps): Promise<number> {
   const adcFn = deps.resolveAdc ?? demo?.resolveAdc ?? resolveAdc;
   const projectFn = deps.getActiveProject ?? demo?.getActiveProject ?? getActiveProject;
   const identityFn = deps.resolveIdentity ?? demo?.resolveIdentity ?? resolveIdentity;
+  // Precedence: injected dep (tests) > demo fake (CI/offline) > real adapter.
+  const createPubSubClientFn =
+    deps.createPubSubClient ?? demo?.createPubSubClient ?? createRealPubSubClient;
   const startFn = deps.start ?? defaultStart;
   const openFn = deps.open;
   const clientDir = deps.clientDir ?? defaultClientDir();
@@ -118,7 +159,7 @@ export async function runCli(deps: RunCliDeps): Promise<number> {
       logger: runLogger,
       clientDir,
       auth: adc,
-      createPubSubClient: (projectId: string) => new PubSub({ projectId }),
+      createPubSubClient: createPubSubClientFn,
       getSession: async (traceId: string) => {
         store.setLastTraceId(traceId);
         return store.snapshot();
