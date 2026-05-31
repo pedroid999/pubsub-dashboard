@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { buildServer } from '../../src/server/server.js';
 import { createLogger } from '../../src/server/middleware/trace.js';
 import type { Session } from '../../src/server/schemas/session.js';
+import type { PubSubClientLike } from '../../src/server/routes/pubsub.js';
 import {
   TopicsResponseSchema,
   SubscriptionsResponseSchema,
@@ -29,9 +30,9 @@ function makeAuth() {
 }
 
 function makePubSubClient(overrides: Partial<{
-  getTopics: () => Promise<unknown[]>;
-  getSubscriptions: () => Promise<unknown[]>;
-}> = {}) {
+  getTopics: () => Promise<unknown>;
+  getSubscriptions: () => Promise<unknown>;
+}> = {}): PubSubClientLike {
   return {
     getTopics: vi.fn().mockResolvedValue([
       [
@@ -56,7 +57,7 @@ function makePubSubClient(overrides: Partial<{
       ],
     ]),
     ...overrides,
-  };
+  } as unknown as PubSubClientLike;
 }
 
 describe('GET /api/projects/:projectId/topics', () => {

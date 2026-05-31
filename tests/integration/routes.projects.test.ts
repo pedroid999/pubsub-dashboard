@@ -304,7 +304,7 @@ describe('GET /api/projects', () => {
     expect(parsed.success).toBe(true);
     if (parsed.success) {
       expect(parsed.data.projects).toHaveLength(1);
-      expect(parsed.data.projects[0].projectId).toBe('proj-a');
+      expect(parsed.data.projects[0]?.projectId).toBe('proj-a');
     }
   });
 });
