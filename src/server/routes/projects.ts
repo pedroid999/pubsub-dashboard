@@ -3,7 +3,7 @@ import type { AppEnv } from '../app.js';
 import type { AdcContext } from '../auth/index.js';
 import { GcpProjectSchema, type GcpProject, type PubSubError } from '../schemas/pubsub.js';
 
-const CRM_BASE = 'https://cloudresourcemanager.googleapis.com/v3/projects';
+const CRM_BASE = 'https://cloudresourcemanager.googleapis.com/v1/projects';
 const FETCH_TIMEOUT_MS = 8_000;
 
 export interface ProjectsDeps {
@@ -13,8 +13,8 @@ export interface ProjectsDeps {
 
 interface CrmProject {
   projectId?: string;
-  displayName?: string;
-  state?: string;
+  name?: string;
+  lifecycleState?: string;
 }
 
 interface CrmResponse {
@@ -100,8 +100,8 @@ async function fetchAllProjects(token: string, fetchFn: typeof fetch): Promise<G
     for (const p of data.projects ?? []) {
       const parsed = GcpProjectSchema.safeParse({
         projectId: p.projectId ?? '',
-        displayName: p.displayName ?? p.projectId ?? '',
-        state: p.state ?? 'ACTIVE',
+        displayName: p.name ?? p.projectId ?? '',
+        state: p.lifecycleState ?? 'ACTIVE',
       });
       if (parsed.success) all.push(parsed.data);
     }
