@@ -23,8 +23,11 @@ const mockAuth = {
 let server: RunningServer;
 
 test.beforeAll(async () => {
+  // Use DEFAULT_PORT so the URL matches the baseURL + Host header in playwright.config.ts.
+  // extraHTTPHeaders sends Host: 127.0.0.1:4321 to all requests including page.goto;
+  // Chromium rejects navigation when the Host header port differs from the URL port.
   server = await start({
-    port: 0,
+    port: DEFAULT_PORT,
     logger: createLogger({ level: 'silent' }),
     clientDir: 'dist/client',
     getSession: async (traceId) => SessionSchema.parse({ ...session, lastTraceId: traceId }),
@@ -37,7 +40,7 @@ test.afterAll(async () => {
 });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(server.url);
+  await page.goto('/');
 });
 
 test('theme toggle is present in the header', async ({ page }) => {
