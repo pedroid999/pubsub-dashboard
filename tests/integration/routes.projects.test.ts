@@ -24,8 +24,6 @@ function makeAuth(tokenValue = 'fake-token') {
   };
 }
 
-const CRM_URL = 'https://cloudresourcemanager.googleapis.com/v3/projects';
-
 describe('GET /api/projects', () => {
   beforeEach(() => {
     vi.restoreAllMocks();

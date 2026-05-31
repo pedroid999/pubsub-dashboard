@@ -39,6 +39,14 @@ export default tseslint.config(
     },
   },
   {
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^_', argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
     // Enforce the clarification: the active project comes ONLY from
     // `gcloud config get-value project` (src/server/auth/project.ts).
     // Reading GOOGLE_CLOUD_PROJECT anywhere in src/ is forbidden.

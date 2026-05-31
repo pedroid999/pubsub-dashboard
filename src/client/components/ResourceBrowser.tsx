@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { RefreshCw, Search, X } from 'lucide-react';
 import type { Topic, Subscription } from '../../server/schemas/pubsub.js';
 import { TopicsResponseSchema, SubscriptionsResponseSchema } from '../../server/schemas/pubsub.js';
-import { apiGet, ApiError } from '../lib/api.js';
+import { apiGet } from '../lib/api.js';
 import { useResourceContext } from '../lib/resourceContext.js';
 import { ResourceList } from './ResourceList.js';
 
