@@ -1,6 +1,8 @@
 import { useEffect, useReducer, useState } from 'react';
-import { Check, Download, Trash } from 'lucide-react';
+import { Check, Copy, Download, Trash } from 'lucide-react';
 import { useResourceContext } from '../lib/resourceContext.js';
+import { useComposeDraft } from '../lib/composeDraft.js';
+import { copyPayloadFromMessage } from '../lib/composeDraft.js';
 import { ackMessages, pullMessages } from '../lib/messaging.js';
 import { tryPrettyPrintJson } from '../lib/jsonFormat.js';
 import {
@@ -46,6 +48,7 @@ function PayloadView({ message }: { message: DisplayedMessage }): JSX.Element {
 
 export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Element {
   const { state } = useResourceContext();
+  const { dispatch: composeDispatch } = useComposeDraft();
   const subscriptionName = state.contextMap.get(projectId)?.selectedSubscriptionName;
 
   const [messages, dispatch] = useReducer(receivedMessagesReducer, initialReceivedMessagesState);
@@ -192,7 +195,20 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
                 ))}
               </dl>
             )}
-            <div className="mt-1.5 flex items-center justify-end">
+            <div className="mt-1.5 flex items-center justify-end gap-3">
+              {/* FR-009/FR-014: copy into the publish composer; disabled for binary payloads. */}
+              <button
+                type="button"
+                disabled={m.dataEncoding === 'base64'}
+                onClick={() => {
+                  const payload = copyPayloadFromMessage(m);
+                  if (payload) composeDispatch({ type: 'COPY_TO_PUBLISH', payload });
+                }}
+                aria-label="Copy to publish"
+                className="flex items-center gap-1 text-[11px] text-slate-500 underline hover:text-slate-700 disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40"
+              >
+                <Copy className="h-3 w-3" /> Copy to publish
+              </button>
               {m.acknowledged ? (
                 <span className="flex items-center gap-1 text-[11px] text-green-600">
                   <Check className="h-3 w-3" /> Acknowledged

@@ -6,6 +6,7 @@ import { ProjectBrowser } from './components/ProjectBrowser.js';
 import { ResourceBrowser } from './components/ResourceBrowser.js';
 import { MessagePublisher } from './components/MessagePublisher.js';
 import { MessageReceiver } from './components/MessageReceiver.js';
+import { ComposeDraftProvider } from './components/ComposeDraftProvider.js';
 import { ContextIndicator } from './components/ContextIndicator.js';
 import { ThemeProvider } from './lib/theme.js';
 import { ThemeToggle } from './components/ThemeToggle.js';
@@ -53,10 +54,12 @@ function AppContent(): JSX.Element {
             Project: <span className="font-mono font-medium">{state.activeProjectId}</span>
           </h2>
           <ResourceBrowser projectId={state.activeProjectId} />
-          <div className="mt-6 grid grid-cols-2 gap-6">
-            <MessagePublisher projectId={state.activeProjectId} />
-            <MessageReceiver projectId={state.activeProjectId} />
-          </div>
+          <ComposeDraftProvider>
+            <div className="mt-6 grid grid-cols-2 gap-6">
+              <MessagePublisher projectId={state.activeProjectId} />
+              <MessageReceiver projectId={state.activeProjectId} />
+            </div>
+          </ComposeDraftProvider>
         </section>
       )}
     </main>
