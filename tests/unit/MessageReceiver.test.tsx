@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { useEffect } from 'react';
 import { render, screen, waitFor, cleanup, fireEvent } from '@testing-library/react';
 import { ResourceContextProvider } from '../../src/client/components/ResourceContextProvider.js';
+import { ComposeDraftProvider } from '../../src/client/components/ComposeDraftProvider.js';
 import { MessageReceiver } from '../../src/client/components/MessageReceiver.js';
 import { useResourceContext } from '../../src/client/lib/resourceContext.js';
 import type { ReceivedMessage } from '../../src/server/schemas/messaging.js';
@@ -23,8 +24,10 @@ function Seed({ projectId, subscriptionName }: { projectId: string; subscription
 function renderWithSub(subscriptionName?: string) {
   return render(
     <ResourceContextProvider>
-      <Seed projectId="my-proj" subscriptionName={subscriptionName} />
-      <MessageReceiver projectId="my-proj" />
+      <ComposeDraftProvider>
+        <Seed projectId="my-proj" subscriptionName={subscriptionName} />
+        <MessageReceiver projectId="my-proj" />
+      </ComposeDraftProvider>
     </ResourceContextProvider>,
   );
 }
@@ -156,5 +159,23 @@ describe('MessageReceiver', () => {
     fireEvent.click(screen.getByRole('button', { name: /acknowledge/i }));
 
     await waitFor(() => expect(screen.getByText(/window expired/i)).toBeTruthy());
+  });
+
+  it('offers Copy to publish on a utf-8 message and disables it for binary (FR-009/FR-014)', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      jsonResponse(200, {
+        messages: [msg(), msg({ messageId: 'm2', data: '//79', dataEncoding: 'base64' })],
+        traceId: TRACE,
+      }),
+    );
+    renderWithSub('projects/p/subscriptions/orders-sub');
+
+    fireEvent.click(screen.getByTestId('pull-button'));
+    await waitFor(() => screen.getByText('m2'));
+
+    const copyButtons = screen.getAllByRole('button', { name: /copy to publish/i });
+    expect(copyButtons).toHaveLength(2);
+    expect((copyButtons[0] as HTMLButtonElement).disabled).toBe(false); // utf-8
+    expect((copyButtons[1] as HTMLButtonElement).disabled).toBe(true); // base64
   });
 });
