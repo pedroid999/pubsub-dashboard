@@ -62,7 +62,9 @@ test.afterAll(async () => {
 
 test('⌘K opens the palette; Esc closes it', async ({ page }) => {
   await page.goto('/');
-  await page.keyboard.press('Meta+k');
+  // ControlOrMeta = Meta on macOS, Control on Linux/Windows. A hardcoded Meta+k
+  // is the Super key on Linux CI and never fires the handler (metaKey||ctrlKey).
+  await page.keyboard.press('ControlOrMeta+k');
   await expect(page.getByTestId('command-palette')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByTestId('command-palette')).toBeHidden();
