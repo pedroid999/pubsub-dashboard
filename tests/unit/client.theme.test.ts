@@ -64,6 +64,7 @@ describe('ThemeProvider (US2 — system preference detection)', () => {
     localStorage.clear();
     vi.restoreAllMocks();
     document.documentElement.classList.remove('dark');
+    document.documentElement.removeAttribute('data-theme');
   });
 
   it('applies dark class when stored preference is dark', () => {
@@ -77,6 +78,19 @@ describe('ThemeProvider (US2 — system preference detection)', () => {
     localStorage.setItem(STORAGE_KEY, 'light');
     render(createElement(ThemeProvider, null, null));
     expect(document.documentElement.classList.contains('dark')).toBe(false);
+  });
+
+  it('defaults to dark when no preference is stored (FR-003 / N1)', () => {
+    localStorage.clear();
+    render(createElement(ThemeProvider, null, null));
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
+  });
+
+  it('sets data-theme in sync with the active theme', () => {
+    localStorage.setItem(STORAGE_KEY, 'light');
+    render(createElement(ThemeProvider, null, null));
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light');
   });
 
   it('useTheme throws outside ThemeProvider', () => {

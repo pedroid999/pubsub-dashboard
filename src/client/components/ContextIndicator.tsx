@@ -1,3 +1,4 @@
+import { Hash, Radio } from 'lucide-react';
 import { useResourceContext } from '../lib/resourceContext.js';
 
 export function ContextIndicator(): JSX.Element | null {
@@ -12,37 +13,29 @@ export function ContextIndicator(): JSX.Element | null {
     <div
       role="status"
       aria-label="Active context"
-      className="border-b border-slate-200 bg-slate-100 px-6 py-2 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+      className="flex items-center gap-4 border-b border-line bg-inset px-4 py-1.5 text-xs text-fg2"
     >
-      <span className="inline-flex items-center gap-4">
-        <span>
-          <span className="font-semibold text-slate-500 dark:text-slate-400">Project </span>
-          <span className="font-mono text-slate-800 dark:text-slate-200">{activeProjectId}</span>
-        </span>
-        <span className="text-slate-300 dark:text-slate-600">|</span>
-        <span>
-          <span className="font-semibold text-slate-500 dark:text-slate-400">Topic </span>
-          {ctx.selectedTopicName ? (
-            <span className="font-mono text-slate-800 dark:text-slate-200">
-              {ctx.selectedTopicName}
-            </span>
-          ) : (
-            <span className="italic text-slate-400 dark:text-slate-500">No topic selected</span>
-          )}
-        </span>
-        <span className="text-slate-300 dark:text-slate-600">|</span>
-        <span>
-          <span className="font-semibold text-slate-500 dark:text-slate-400">Subscription </span>
-          {ctx.selectedSubscriptionName ? (
-            <span className="font-mono text-slate-800 dark:text-slate-200">
-              {ctx.selectedSubscriptionName}
-            </span>
-          ) : (
-            <span className="italic text-slate-400 dark:text-slate-500">
-              No subscription selected
-            </span>
-          )}
-        </span>
+      <span className="inline-flex items-center gap-1.5">
+        <span className="font-semibold uppercase tracking-[0.1em] text-fg3">Project</span>
+        <span className="font-mono text-fg0">{activeProjectId}</span>
+      </span>
+      <span className="text-line-strong">·</span>
+      <span className="inline-flex items-center gap-1.5">
+        <Hash className="h-3 w-3 text-cyan" />
+        {ctx.selectedTopicName ? (
+          <span className="font-mono text-fg0">{ctx.selectedTopicName}</span>
+        ) : (
+          <span className="italic text-fg3">No topic selected</span>
+        )}
+      </span>
+      <span className="text-line-strong">·</span>
+      <span className="inline-flex items-center gap-1.5">
+        <Radio className="h-3 w-3 text-magenta" />
+        {ctx.selectedSubscriptionName ? (
+          <span className="font-mono text-fg0">{ctx.selectedSubscriptionName}</span>
+        ) : (
+          <span className="italic text-fg3">No subscription selected</span>
+        )}
       </span>
     </div>
   );

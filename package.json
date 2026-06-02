@@ -1,6 +1,6 @@
 {
   "name": "pubsub-dashboard",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "description": "Local-first developer dashboard for Google Cloud Pub/Sub — runs entirely on 127.0.0.1, authenticates via gcloud ADC, zero telemetry.",
   "license": "Apache-2.0",
   "type": "module",

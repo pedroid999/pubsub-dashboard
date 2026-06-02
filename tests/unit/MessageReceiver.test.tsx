@@ -63,7 +63,12 @@ describe('MessageReceiver', () => {
 
     fireEvent.click(screen.getByTestId('pull-button'));
 
-    await waitFor(() => expect(screen.getByText(/"k": 1/)).toBeTruthy());
+    // The payload is JSON-highlighted (US6) — assert on the <pre> textContent,
+    // which concatenates the token spans back into the pretty-printed JSON.
+    await waitFor(() => {
+      const pre = document.querySelector('pre');
+      expect(pre?.textContent).toContain('"k": 1');
+    });
     expect(screen.getByText('eventType=x')).toBeTruthy();
     expect(screen.getByText('m1')).toBeTruthy();
   });
@@ -177,5 +182,120 @@ describe('MessageReceiver', () => {
     expect(copyButtons).toHaveLength(2);
     expect((copyButtons[0] as HTMLButtonElement).disabled).toBe(false); // utf-8
     expect((copyButtons[1] as HTMLButtonElement).disabled).toBe(true); // base64
+  });
+});
+
+// ---- US7: opt-in auto-poll (R1–R7, SC-006) ----------------------------------
+
+describe('MessageReceiver · US7 auto-poll', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('R3: manual Pull is available and Auto is off by default (no indicator)', () => {
+    renderWithSub('projects/p/subscriptions/orders-sub');
+    expect(screen.getByTestId('pull-button')).toBeInTheDocument();
+    expect(screen.getByTestId('auto-toggle')).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByTestId('auto-indicator')).toBeNull();
+  });
+
+  it('R1: enabling Auto polls every 2.5s and shows the active indicator', async () => {
+    vi.useFakeTimers();
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse(200, { messages: [msg()], traceId: TRACE }));
+    renderWithSub('projects/p/subscriptions/orders-sub');
+
+    fireEvent.click(screen.getByTestId('auto-toggle'));
+    expect(screen.getByTestId('auto-indicator')).toBeInTheDocument();
+    expect(spy).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(spy).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
+  it('R2/R6: disabling Auto stops polling within one interval', async () => {
+    vi.useFakeTimers();
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse(200, { messages: [msg()], traceId: TRACE }));
+    renderWithSub('projects/p/subscriptions/orders-sub');
+
+    fireEvent.click(screen.getByTestId('auto-toggle'));
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByTestId('auto-toggle')); // disable
+    expect(screen.queryByTestId('auto-indicator')).toBeNull();
+    await vi.advanceTimersByTimeAsync(7500);
+    expect(spy).toHaveBeenCalledTimes(1); // no further polls
+  });
+
+  it('R5: unmounting clears the interval (no background polling)', async () => {
+    vi.useFakeTimers();
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(jsonResponse(200, { messages: [msg()], traceId: TRACE }));
+    const { unmount } = renderWithSub('projects/p/subscriptions/orders-sub');
+
+    fireEvent.click(screen.getByTestId('auto-toggle'));
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(spy).toHaveBeenCalledTimes(1);
+
+    unmount();
+    await vi.advanceTimersByTimeAsync(7500);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('R7: a failed pull pauses Auto pending user action', async () => {
+    vi.useFakeTimers();
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      jsonResponse(401, {
+        code: 'PERMISSION_DENIED',
+        message: 'Missing pubsub.subscriptions.consume permission.',
+        traceId: TRACE,
+      }),
+    );
+    renderWithSub('projects/p/subscriptions/orders-sub');
+
+    fireEvent.click(screen.getByTestId('auto-toggle'));
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(spy).toHaveBeenCalledTimes(1);
+    // Auto paused: indicator gone, no further polling.
+    expect(screen.queryByTestId('auto-indicator')).toBeNull();
+    await vi.advanceTimersByTimeAsync(7500);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it('R4: changing the active subscription stops Auto and clears the list', async () => {
+    vi.useFakeTimers();
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        jsonResponse(200, { messages: [msg({ messageId: 'keep' })], traceId: TRACE }),
+      );
+
+    const tree = (sub: string) => (
+      <ResourceContextProvider>
+        <ComposeDraftProvider>
+          <Seed projectId="my-proj" subscriptionName={sub} />
+          <MessageReceiver projectId="my-proj" />
+        </ComposeDraftProvider>
+      </ResourceContextProvider>
+    );
+    const { rerender } = render(tree('projects/p/subscriptions/sub-a'));
+
+    fireEvent.click(screen.getByTestId('auto-toggle'));
+    await vi.advanceTimersByTimeAsync(2500);
+    expect(screen.getByText('keep')).toBeInTheDocument();
+
+    rerender(tree('projects/p/subscriptions/sub-b'));
+    // Auto stopped (indicator gone) and the previous list was cleared.
+    expect(screen.queryByTestId('auto-indicator')).toBeNull();
+    expect(screen.queryByText('keep')).toBeNull();
+    await vi.advanceTimersByTimeAsync(7500);
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 });

@@ -79,3 +79,53 @@ describe('client/lib/receivedMessages — MARK_ACKNOWLEDGED (T035)', () => {
     expect(next.items.every((m) => m.acknowledged === false)).toBe(true);
   });
 });
+
+// ---- US7 (FR-020): running-list cap at the 60 newest ------------------------
+
+describe('receivedMessagesReducer · 60-cap (R8/R10)', () => {
+  function manyMessages(n: number): ReceivedMessage[] {
+    return Array.from({ length: n }, (_, i) => msg({ messageId: `m${i}`, ackId: `ack-${i}` }));
+  }
+
+  it('keeps all items when total is at or below 60', () => {
+    const next = receivedMessagesReducer(initialReceivedMessagesState, {
+      type: 'APPEND',
+      messages: manyMessages(60),
+    });
+    expect(next.items).toHaveLength(60);
+  });
+
+  it('caps at 60, dropping the oldest and retaining the newest', () => {
+    const next = receivedMessagesReducer(initialReceivedMessagesState, {
+      type: 'APPEND',
+      messages: manyMessages(75),
+    });
+    expect(next.items).toHaveLength(60);
+    // Oldest (m0..m14) dropped; newest (m74) retained.
+    expect(next.items[0]?.messageId).toBe('m15');
+    expect(next.items[next.items.length - 1]?.messageId).toBe('m74');
+  });
+
+  it('caps across successive appends (M existing + N new)', () => {
+    const first = receivedMessagesReducer(initialReceivedMessagesState, {
+      type: 'APPEND',
+      messages: manyMessages(50),
+    });
+    const second = receivedMessagesReducer(first, {
+      type: 'APPEND',
+      messages: Array.from({ length: 30 }, (_, i) =>
+        msg({ messageId: `n${i}`, ackId: `nack-${i}` }),
+      ),
+    });
+    expect(second.items).toHaveLength(60);
+    expect(second.items[second.items.length - 1]?.messageId).toBe('n29');
+  });
+
+  it('CLEAR still empties a capped list', () => {
+    const filled = receivedMessagesReducer(initialReceivedMessagesState, {
+      type: 'APPEND',
+      messages: manyMessages(75),
+    });
+    expect(receivedMessagesReducer(filled, { type: 'CLEAR' }).items).toHaveLength(0);
+  });
+});

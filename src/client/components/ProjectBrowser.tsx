@@ -77,7 +77,7 @@ export function ProjectBrowser({
   return (
     <div className="flex flex-col gap-4">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg3" />
         <input
           type="text"
           placeholder="Search projects…"
@@ -85,7 +85,7 @@ export function ProjectBrowser({
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search projects"
           data-testid="project-search"
-          className="w-full rounded-md border border-slate-300 py-2 pl-9 pr-9 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+          className="w-full rounded-token border border-line bg-inset py-2 pl-9 pr-9 text-sm text-fg0 placeholder-fg3 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
         />
         {query && (
           <button
@@ -106,7 +106,7 @@ export function ProjectBrowser({
           No matching projects for &ldquo;{query}&rdquo;.
         </p>
       ) : (
-        <ul className="divide-y divide-slate-100 rounded-md border border-slate-200 bg-white dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800">
+        <ul className="divide-y divide-line overflow-hidden rounded-token border border-line bg-inset">
           {filtered.map((project) => {
             const segments = highlightMatch(project.displayName, query);
             return (
@@ -115,15 +115,12 @@ export function ProjectBrowser({
                   type="button"
                   onClick={() => onSelectProject(project.projectId)}
                   data-testid={`project-item-${project.projectId}`}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700"
+                  className="flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors hover:bg-bg2"
                 >
-                  <span className="font-medium text-slate-800 dark:text-slate-200">
+                  <span className="font-medium text-fg0">
                     {segments.map((seg, i) =>
                       seg.highlight ? (
-                        <mark
-                          key={i}
-                          className="bg-yellow-100 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-200"
-                        >
+                        <mark key={i} className="bg-transparent font-semibold text-accent">
                           {seg.text}
                         </mark>
                       ) : (
@@ -131,9 +128,7 @@ export function ProjectBrowser({
                       ),
                     )}
                   </span>
-                  <span className="font-mono text-xs text-slate-400 dark:text-slate-500">
-                    {project.projectId}
-                  </span>
+                  <span className="font-mono text-xs text-fg3">{project.projectId}</span>
                 </button>
               </li>
             );

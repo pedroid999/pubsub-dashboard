@@ -5,16 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pub/Sub Dashboard</title>
     <script>
+      // Feature 006: apply persisted theme + appearance BEFORE first paint so
+      // there is no flash of the wrong appearance (FR-015 / SC-004). Defaults to
+      // dark ("Sumi Ink") when no theme is stored (FR-003).
       (function () {
+        var el = document.documentElement;
         try {
           var s = localStorage.getItem('pubsub-dashboard:theme');
-          var v = s === 'dark' || s === 'light' || s === 'system';
-          var p = v ? s : 'system';
-          var d = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          if (p === 'dark' || (p === 'system' && d)) {
-            document.documentElement.classList.add('dark');
-          }
-        } catch (_) {}
+          var p = s === 'dark' || s === 'light' || s === 'system' ? s : 'dark';
+          var osDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var active = p === 'dark' || (p === 'system' && osDark) ? 'dark' : 'light';
+          if (active === 'dark') el.classList.add('dark');
+          el.setAttribute('data-theme', active);
+        } catch (_) {
+          el.classList.add('dark');
+          el.setAttribute('data-theme', 'dark');
+        }
+        try {
+          var raw = localStorage.getItem('pubsub-dashboard:appearance');
+          var a = raw ? JSON.parse(raw) : {};
+          var density =
+            ['compact', 'regular', 'cozy'].indexOf(a.density) >= 0 ? a.density : 'compact';
+          var accent =
+            ['cyan', 'magenta', 'amber', 'violet'].indexOf(a.accent) >= 0 ? a.accent : 'cyan';
+          el.setAttribute('data-density', density);
+          el.setAttribute('data-accent', accent);
+        } catch (_) {
+          el.setAttribute('data-density', 'compact');
+          el.setAttribute('data-accent', 'cyan');
+        }
       })();
     </script>
   </head>
