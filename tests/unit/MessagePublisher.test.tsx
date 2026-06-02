@@ -333,3 +333,97 @@ describe('MessagePublisher', () => {
     expect(screen.getByTitle('projects/p/topics/other')).toBeTruthy();
   });
 });
+
+// ---- US6: live JSON syntax highlighting overlay (FR-018/FR-019) --------------
+
+describe('MessagePublisher · US6 JSON highlight overlay', () => {
+  it('AS4: renders the overlay only in JSON mode, never in text mode', () => {
+    renderWithTopic('projects/p/topics/orders');
+    // Default is text mode → no overlay.
+    expect(screen.queryByTestId('json-highlight-overlay')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /^json$/i }));
+    expect(screen.getByTestId('json-highlight-overlay')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^text$/i }));
+    expect(screen.queryByTestId('json-highlight-overlay')).toBeNull();
+  });
+
+  it('AS1: the overlay reproduces the exact textarea text (display-only)', () => {
+    renderWithTopic('projects/p/topics/orders');
+    fireEvent.click(screen.getByRole('button', { name: /^json$/i }));
+    fireEvent.change(screen.getByTestId('publish-body'), { target: { value: '{"k":1,"s":"v"}' } });
+
+    const overlay = screen.getByTestId('json-highlight-overlay');
+    // Overlay text === the textarea bytes (plus a trailing newline for caret row).
+    expect(overlay.textContent).toBe('{"k":1,"s":"v"}\n');
+    // It colorizes: a key span and a number span are present.
+    expect(overlay.querySelector('.tok-key')?.textContent).toBe('"k"');
+    expect(overlay.querySelector('.tok-num')?.textContent).toBe('1');
+  });
+
+  it('AS2: invalid JSON still blocks publish with the overlay present (feature 005 preserved)', () => {
+    renderWithTopic('projects/p/topics/orders');
+    fireEvent.click(screen.getByRole('button', { name: /^json$/i }));
+    fireEvent.change(screen.getByTestId('publish-body'), { target: { value: '{"a": }' } });
+
+    expect(screen.getByTestId('json-highlight-overlay')).toBeInTheDocument();
+    expect(screen.getByTestId('json-invalid')).toBeInTheDocument();
+    expect((screen.getByRole('button', { name: /^publish$/i }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
+  });
+
+  it('makes the textarea transparent in JSON mode so the highlight overlay shows (regression)', () => {
+    renderWithTopic('projects/p/topics/orders');
+    const body = () => screen.getByTestId('publish-body');
+    // Text mode: opaque, readable text.
+    expect(body().className).not.toContain('text-transparent');
+    expect(body().className).toContain('text-fg0');
+    // JSON mode: transparent text/bg + visible caret so the colored <pre> shows.
+    fireEvent.click(screen.getByRole('button', { name: /^json$/i }));
+    expect(body().className).toContain('text-transparent');
+    expect(body().className).toContain('bg-transparent');
+    expect(body().className).toContain('caret-fg0');
+  });
+
+  it('AS3: publishes the exact bytes shown in the textarea (overlay never alters payload)', async () => {
+    const fetchSpy = mockPublish(200, { messageId: 'm-json', traceId: TRACE });
+    renderWithTopic('projects/p/topics/orders');
+    fireEvent.click(screen.getByRole('button', { name: /^json$/i }));
+    const payload = '{"k":1}';
+    fireEvent.change(screen.getByTestId('publish-body'), { target: { value: payload } });
+    fireEvent.click(screen.getByRole('button', { name: /^publish$/i }));
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalled());
+    const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string).data).toBe(payload);
+    expect((screen.getByTestId('publish-body') as HTMLTextAreaElement).value).toBe(payload);
+  });
+
+  it('loads a JSON body from a local file and switches to JSON mode', async () => {
+    renderWithTopic('projects/p/topics/orders');
+    const fileContent = '{"loaded":true,"from":"file"}';
+    const file = new File([fileContent], 'payload.json', { type: 'application/json' });
+
+    fireEvent.change(screen.getByTestId('publish-file-input'), { target: { files: [file] } });
+
+    await waitFor(() =>
+      expect((screen.getByTestId('publish-body') as HTMLTextAreaElement).value).toBe(fileContent),
+    );
+    // Loading a JSON file flips the composer into JSON mode (overlay + validity).
+    expect(screen.getByTestId('json-highlight-overlay')).toBeInTheDocument();
+    expect(screen.getByTestId('json-valid')).toBeInTheDocument();
+  });
+
+  it('keeps the composer usable when the same file is re-selected (input value reset)', async () => {
+    renderWithTopic('projects/p/topics/orders');
+    const file = new File(['{"x":1}'], 'p.json', { type: 'application/json' });
+    const input = screen.getByTestId('publish-file-input') as HTMLInputElement;
+
+    fireEvent.change(input, { target: { files: [file] } });
+    await waitFor(() =>
+      expect((screen.getByTestId('publish-body') as HTMLTextAreaElement).value).toBe('{"x":1}'),
+    );
+    // The handler clears the input so picking the same file again still fires.
+    expect(input.value).toBe('');
+  });
+});

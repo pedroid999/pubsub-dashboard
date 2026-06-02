@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
-import { Plus, Send, Trash2, Wand2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { FolderOpen, Plus, Send, Trash2, Wand2 } from 'lucide-react';
 import { useResourceContext } from '../lib/resourceContext.js';
 import { useComposeDraft } from '../lib/composeDraft.js';
 import { validateJson, formatJson } from '../lib/jsonValidation.js';
 import { publishMessage, validateOutboundDraft } from '../lib/messaging.js';
+import { HighlightedJson } from './HighlightedJson.js';
+import { flashStatus } from '../lib/statusFlash.js';
 
 export interface MessagePublisherProps {
   projectId: string;
@@ -28,6 +30,8 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
 
   const [publishState, setPublishState] = useState<PublishState>({ status: 'idle' });
   const [validationError, setValidationError] = useState<string | null>(null);
+  const overlayRef = useRef<HTMLPreElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // FR-018: on active-topic change, reset ONLY the publish result and inline
   // validation message — the draft (body/attributes/mode) lives in the provider
@@ -39,8 +43,10 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
 
   if (!topicName) {
     return (
-      <div className="rounded border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-center text-xs text-slate-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400">
-        Select a topic to publish a message.
+      <div className="panel ticks flex min-h-[150px] items-center justify-center px-3 py-4 text-center text-xs text-fg3">
+        <span className="flex items-center gap-2">
+          <Send className="h-4 w-4 opacity-50" /> Select a topic to publish a message.
+        </span>
       </div>
     );
   }
@@ -63,6 +69,28 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
     }
   }
 
+  // Load a JSON message body from a local file via the OS file browser. The
+  // contents replace the composer body and switch it to JSON mode; the existing
+  // live validity indicator then flags whether the file actually parsed. Reading
+  // is local-only (FR-025) — the file never leaves the browser. FileReader is
+  // used over Blob.text() for broad runtime/test (jsdom) support.
+  function onLoadFile(event: React.ChangeEvent<HTMLInputElement>): void {
+    const file = event.target.files?.[0];
+    // Reset so picking the same file again still fires a change event.
+    event.target.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = typeof reader.result === 'string' ? reader.result : '';
+      dispatch({ type: 'SET_MODE', mode: 'json' });
+      dispatch({ type: 'SET_BODY', body: text });
+      setValidationError(null);
+      flashStatus(`Loaded ${file.name}`);
+    };
+    reader.onerror = () => setValidationError('Could not read the selected file.');
+    reader.readAsText(file);
+  }
+
   async function onPublish(): Promise<void> {
     const validation = validateOutboundDraft({ body, attributes });
     if (!validation.ok) {
@@ -74,6 +102,7 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
     try {
       const result = await publishMessage(projectId, topicId, body, validation.attributes);
       setPublishState({ status: 'success', messageId: result.messageId });
+      flashStatus(`Published · ${result.messageId}`);
       // FR-007/FR-016: body + attributes are intentionally preserved for republish.
     } catch (err: unknown) {
       const e = err as { code?: string; message?: string };
@@ -87,15 +116,13 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
   }
 
   return (
-    <div className="rounded border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+    <div className="panel ticks rise flex min-h-0 flex-col p-3">
+      <div className="mb-2 flex flex-none items-center justify-between">
+        <h3 className="flex items-center gap-2 text-[var(--fs-label)] font-semibold uppercase tracking-[0.12em] text-fg2">
           Publish
+          <span className="font-jp text-[10px] normal-case tracking-normal text-cyan">送信</span>
         </h3>
-        <span
-          className="font-mono text-[11px] text-slate-400 dark:text-slate-500"
-          title={topicName}
-        >
+        <span className="font-mono text-[11px] text-fg3" title={topicName}>
           {topicId}
         </span>
       </div>
@@ -146,6 +173,22 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
             JSON
           </button>
         </div>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          aria-label="Load JSON from file"
+          className="flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 dark:text-blue-400"
+        >
+          <FolderOpen className="h-3 w-3" /> Load
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          data-testid="publish-file-input"
+          onChange={onLoadFile}
+        />
         {mode === 'json' && (
           <>
             <button
@@ -172,19 +215,43 @@ export function MessagePublisher({ projectId }: MessagePublisherProps): JSX.Elem
         )}
       </div>
 
-      <textarea
-        value={body}
-        onChange={(e) => dispatch({ type: 'SET_BODY', body: e.target.value })}
-        placeholder={mode === 'json' ? 'Message body (JSON)…' : 'Message body (text or JSON)…'}
-        aria-label="Message body"
-        data-testid="publish-body"
-        rows={4}
-        className={`w-full rounded border p-2 font-mono text-xs focus:outline-none focus:ring-1 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-500 ${
-          jsonInvalid
-            ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
-            : 'border-slate-300 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600'
-        }`}
-      />
+      {/* US6 (FR-018/FR-019): display-only JSON syntax highlight. A <pre> overlay
+          renders the tokenized body behind a transparent-text <textarea> that
+          shares identical metrics; the textarea stays the byte source of truth,
+          so the published payload is never altered. JSON mode only. */}
+      <div className="relative min-h-[120px] flex-1">
+        {mode === 'json' && (
+          <pre
+            ref={overlayRef}
+            aria-hidden="true"
+            data-testid="json-highlight-overlay"
+            className="pointer-events-none absolute inset-0 m-0 overflow-hidden whitespace-pre-wrap break-words rounded border border-transparent p-2 font-mono text-xs leading-normal text-fg0"
+          >
+            <HighlightedJson text={body} />
+            {'\n'}
+          </pre>
+        )}
+        <textarea
+          value={body}
+          onChange={(e) => dispatch({ type: 'SET_BODY', body: e.target.value })}
+          onScroll={(e) => {
+            if (overlayRef.current) {
+              overlayRef.current.scrollTop = e.currentTarget.scrollTop;
+              overlayRef.current.scrollLeft = e.currentTarget.scrollLeft;
+            }
+          }}
+          placeholder={mode === 'json' ? 'Message body (JSON)…' : 'Message body (text or JSON)…'}
+          aria-label="Message body"
+          data-testid="publish-body"
+          className={`absolute inset-0 h-full w-full resize-none rounded border p-2 font-mono text-xs leading-normal placeholder-fg3 focus:outline-none focus:ring-1 ${
+            mode === 'json' ? 'bg-transparent text-transparent caret-fg0' : 'bg-inset text-fg0'
+          } ${
+            jsonInvalid
+              ? 'border-danger focus:border-danger focus:ring-danger'
+              : 'border-line focus:border-accent focus:ring-accent'
+          }`}
+        />
+      </div>
 
       <div className="mt-2">
         <div className="mb-1 flex items-center justify-between">

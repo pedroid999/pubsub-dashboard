@@ -14,9 +14,20 @@ type State =
 
 export interface SessionBadgeProps {
   load?: () => Promise<Session>;
+  /**
+   * The currently selected project (from `resourceContext`). When present it is
+   * shown in the badge instead of the gcloud default (`session.projectId`); the
+   * default only surfaces at startup before a project is selected. The container
+   * (`Header`) passes this from the active context so the badge and the project
+   * switcher never disagree.
+   */
+  activeProjectId?: string;
 }
 
-export function SessionBadge({ load = defaultLoad }: SessionBadgeProps): JSX.Element {
+export function SessionBadge({
+  load = defaultLoad,
+  activeProjectId,
+}: SessionBadgeProps): JSX.Element {
   const [state, setState] = useState<State>({ status: 'loading' });
 
   useEffect(() => {
@@ -67,8 +78,11 @@ export function SessionBadge({ load = defaultLoad }: SessionBadgeProps): JSX.Ele
 
   return (
     <div className="flex items-center gap-3 text-sm">
-      <span className="rounded bg-slate-100 px-2 py-1 font-mono text-slate-800 dark:bg-slate-700 dark:text-slate-200">
-        {state.session.projectId}
+      <span
+        data-testid="session-project"
+        className="rounded bg-slate-100 px-2 py-1 font-mono text-slate-800 dark:bg-slate-700 dark:text-slate-200"
+      >
+        {activeProjectId ?? state.session.projectId}
       </span>
       <span className="text-slate-600 dark:text-slate-400">{state.session.identity}</span>
     </div>

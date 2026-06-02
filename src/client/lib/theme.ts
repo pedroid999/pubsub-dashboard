@@ -33,12 +33,15 @@ export interface ThemeContextValue {
 export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function readStoredPreference(): ThemePreference {
+  // FR-003 (feature 006): when NO preference is stored, default to dark
+  // ("Sumi Ink") rather than feature-004's 'system' fallback, so first paint is
+  // the redesign's dark theme regardless of OS. An explicit 'system' still works.
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed = ThemePreferenceSchema.safeParse(raw);
-    return parsed.success ? parsed.data : 'system';
+    return parsed.success ? parsed.data : 'dark';
   } catch {
-    return 'system';
+    return 'dark';
   }
 }
 
@@ -51,11 +54,14 @@ function getOsPrefersDark(): boolean {
 }
 
 function applyThemeClass(active: ActiveTheme): void {
+  // Keep Tailwind's `.dark` class and the token `data-theme` attribute in sync
+  // (feature 006 — tokens in styles.css are keyed by both selectors).
   if (active === 'dark') {
     document.documentElement.classList.add('dark');
   } else {
     document.documentElement.classList.remove('dark');
   }
+  document.documentElement.setAttribute('data-theme', active);
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }): JSX.Element {

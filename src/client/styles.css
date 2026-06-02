@@ -2,11 +2,267 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * ===========================================================================
+ * Feature 006 — "Kanagawa × Blade Runner" design tokens
+ * ---------------------------------------------------------------------------
+ * Tokens are CSS custom properties keyed by data-* attributes on <html>:
+ *   data-theme="dark|light"  · data-density="compact|regular|cozy"
+ *   data-accent="cyan|magenta|amber|violet"
+ * Tailwind `darkMode: 'class'` is preserved: the `.dark` class is kept in sync
+ * with data-theme="dark" so existing `dark:` utilities keep working during the
+ * incremental restyle.
+ *
+ * Self-hosted fonts (FR-025): see src/client/assets/fonts/README.md. The
+ * @font-face block is intentionally commented out until the .woff2 binaries are
+ * added (referencing missing files would break the Vite build). The font-family
+ * vars below fall back to local system fonts, so the app stays local-first.
+ * ===========================================================================
+ */
+
+/*
+@font-face { font-family: 'Space Grotesk'; font-weight: 400 700; font-display: swap;
+  src: url('./assets/fonts/space-grotesk-variable.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-weight: 400 700; font-display: swap;
+  src: url('./assets/fonts/jetbrains-mono-variable.woff2') format('woff2'); }
+@font-face { font-family: 'Zen Kaku Gothic New'; font-weight: 500 700; font-display: swap;
+  src: url('./assets/fonts/zen-kaku-gothic-new-variable.woff2') format('woff2'); }
+*/
+
+:root {
+  /* Typography (branded families first, local system fallbacks after) */
+  --font-ui:
+    'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --font-jp: 'Zen Kaku Gothic New', var(--font-ui);
+
+  /* Radii */
+  --radius: 4px;
+  --radius-lg: 8px;
+
+  /* Neon strength (fixed default — FR-014; not user-configurable) */
+  --neon-strength: 1;
+
+  /* Density (compact = developer-tool default — FR-012) */
+  --gap: 12px;
+  --pad: 11px;
+  --row-pad-y: 7px;
+  --fs-base: 12.5px;
+  --fs-label: 9.5px;
+
+  /* -------- LIGHT theme defaults ("Lotus" washi paper) -------- */
+  --bg-0: #e7dba0;
+  --bg-1: #f2ecbc;
+  --bg-2: #ece4ac;
+  --bg-3: #ddd39a;
+  --bg-inset: #faf4d4;
+  --line: #ddd39a;
+  --line-strong: #c9bd86;
+  --fg-0: #43436c;
+  --fg-1: #545464;
+  --fg-2: #716e61;
+  --fg-3: #9a9275;
+  --neon-cyan: #1f8a9c;
+  --neon-cyan-deep: #156a78;
+  --neon-magenta: #c84b78;
+  --neon-magenta-deep: #a8345e;
+  --neon-amber: #cc6d00;
+  --neon-violet: #6d5fb0;
+  --neon-green: #6f894e;
+  --danger: #c84053;
+  --success: #6f894e;
+  --warn: #b07d00;
+  --accent: var(--neon-cyan);
+  --panel-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(242, 236, 188, 0.6));
+}
+
+/* Density variants */
+:root[data-density='regular'] {
+  --gap: 14px;
+  --pad: 12px;
+  --row-pad-y: 9px;
+  --fs-base: 13px;
+  --fs-label: 10px;
+}
+:root[data-density='cozy'] {
+  --gap: 18px;
+  --pad: 16px;
+  --row-pad-y: 12px;
+  --fs-base: 13.5px;
+  --fs-label: 10.5px;
+}
+
+/* -------- DARK theme ("Sumi Ink"). Synced to Tailwind's .dark class. -------- */
+:root.dark,
+:root[data-theme='dark'] {
+  --bg-0: #16161d;
+  --bg-1: #1f1f28;
+  --bg-2: #2a2a37;
+  --bg-3: #363646;
+  --bg-inset: #14141a;
+  --line: #2a2a37;
+  --line-strong: #43435a;
+  --fg-0: #dcd7ba;
+  --fg-1: #c8c093;
+  --fg-2: #8a8775;
+  --fg-3: #5a5a6e;
+  --neon-cyan: #7fdfe5;
+  --neon-cyan-deep: #38c0c8;
+  --neon-magenta: #ff6ea9;
+  --neon-magenta-deep: #e46688;
+  --neon-amber: #ffb454;
+  --neon-violet: #9a8cd4;
+  --neon-green: #98bb6c;
+  --danger: #ff5d62;
+  --success: #98bb6c;
+  --warn: #e6c384;
+  --accent: var(--neon-cyan);
+  --panel-bg: linear-gradient(180deg, rgba(42, 42, 55, 0.45), rgba(31, 31, 40, 0.85));
+}
+
+/* Accent selection (FR-013) — resolves against the active theme's neon vars */
+:root[data-accent='cyan'] {
+  --accent: var(--neon-cyan);
+}
+:root[data-accent='magenta'] {
+  --accent: var(--neon-magenta);
+}
+:root[data-accent='amber'] {
+  --accent: var(--neon-amber);
+}
+:root[data-accent='violet'] {
+  --accent: var(--neon-violet);
+}
+
+/* Derived glow (scaled by neon strength) */
+:root {
+  --glow-accent:
+    0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 0 calc(18px * var(--neon-strength)) color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+ * Base surface + components
+ * ------------------------------------------------------------------------- */
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-0);
+  color: var(--fg-0);
+}
+
+.font-mono,
+.mono {
+  font-family: var(--font-mono);
+}
+
+.jp-tag {
+  font-family: var(--font-jp);
+  color: var(--accent);
+  opacity: 0.8;
+  letter-spacing: 0.04em;
+}
+
+.panel {
+  position: relative;
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+/* HUD corner ticks (decorative) */
+.ticks::before,
+.ticks::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.ticks::before {
+  top: 0;
+  left: 0;
+  border-top: 1px solid var(--accent);
+  border-left: 1px solid var(--accent);
+}
+.ticks::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: 1px solid var(--accent);
+  border-right: 1px solid var(--accent);
+}
+
+/* Scanline + grain ambient overlay (fixed default — FR-014) */
+.fx-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.055),
+    rgba(0, 0, 0, 0.055) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+:root:not(.dark) .fx-overlay {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.03),
+    rgba(0, 0, 0, 0.03) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* Entrance animation — NEVER animate opacity (a dropped frame must not hide it) */
+@keyframes riseIn {
+  from {
+    transform: translateY(6px);
+  }
+  to {
+    transform: none;
+  }
+}
+.rise {
+  animation: riseIn 0.26s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* JSON highlight overlay token colors (US6) */
+.tok-key {
+  color: var(--neon-cyan);
+}
+.tok-str {
+  color: var(--neon-green);
+}
+.tok-num {
+  color: var(--neon-amber);
+}
+.tok-bool {
+  color: var(--neon-violet);
+}
+.tok-null {
+  color: var(--fg-3);
+}
+.tok-punct {
+  color: var(--fg-2);
+}
+
+/* Accessibility: honor reduced motion (FR-004 / SC-007) */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+  .fx-overlay {
+    display: none;
+  }
+  .rise {
+    animation: none;
   }
 }

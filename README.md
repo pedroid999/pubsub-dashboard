@@ -107,6 +107,33 @@ gcloud projects add-iam-policy-binding <PROJECT_ID> \
 All three endpoints propagate a `traceId` (UUID) in both the response body and
 the `X-Trace-Id` header so that individual requests can be correlated in logs.
 
+## Interface
+
+The dashboard ships a "Kanagawa × Blade Runner" interface — a Japanese-ink
+palette with neon accents and HUD framing. It is presentation only: every
+capability of the resource browser, publisher, and receiver is unchanged. All
+preferences persist in `localStorage` and are applied before first paint (no
+flash of the wrong appearance); nothing leaves your machine.
+
+- **Themes** — Sumi-Ink dark (default) and Lotus light, toggled from the header.
+- **Workspace layouts** — switch between **Rail**, **Triptych**, and **Console**
+  from the appearance settings (gear icon). Your active selection and the
+  in-progress compose draft survive every layout change.
+- **Command palette** — press **⌘K** / **Ctrl+K** (or the header ⌘K button) to
+  jump to any project, topic, or subscription. Navigation only; type to filter,
+  arrows to move, Enter to select, Esc to close.
+- **Appearance settings** — the gear icon opens theme, **density**
+  (compact/regular/cozy), **accent** (cyan/magenta/amber/violet), and layout
+  controls. (Neon intensity and scanlines are fixed defaults, minimized under
+  `prefers-reduced-motion`.)
+- **Keyboard-navigable lists** — each resource list filters as you type, with
+  ↑/↓, Home/End, Enter, and Esc, and a bounded scroll so the editors stay visible.
+- **Live JSON highlighting** — the publisher colorizes JSON as you type
+  (display-only; the published bytes are exactly what you see).
+- **Receiver auto-poll** — opt-in **Auto** mode pulls every 2.5 s with a visible
+  indicator; the running list is capped at the 60 newest messages. Manual
+  **Pull** is always available.
+
 ## Supported OS
 
 macOS and Linux only. **Windows is not supported** in v1.

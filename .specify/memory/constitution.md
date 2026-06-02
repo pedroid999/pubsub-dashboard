@@ -1,36 +1,38 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: (uninitialized template) → 1.0.0
-Bump rationale: MAJOR — initial ratification of the project constitution.
+Version change: 1.0.0 → 1.1.0
+Bump rationale: MINOR — two existing constraints materially expanded (relaxed) to
+bless already-shipped, constitution-aligned implementation choices surfaced by the
+feature 006 /speckit.analyze pass. No principle removed or redefined
+backward-incompatibly; prior PRs remain valid.
 
-Modified principles: N/A (first ratification; all five principles newly defined).
+Modified principles / sections:
+- Principle V (Operational Excellence → Simplicity & YAGNI): preferences-storage
+  rule split — server/CLI preferences stay in the `~/.config` JSON file; client-only
+  UI presentation preferences (theme/density/accent/layout) MAY use browser
+  `localStorage` with `zod`-validated reads.
+- Technology Constraints (JSON editor): a lightweight, display-only syntax-highlight
+  overlay over a native `<textarea>` is now permitted where it never alters
+  submitted bytes (e.g., the publish composer); Monaco/CodeMirror 6 remain required
+  for a full code-editing surface.
 
-Added sections:
-- Core Principles (5)
-  - I. Local-First & Zero-Config
-  - II. Test-First (NON-NEGOTIABLE)
-  - III. Type Safety End-to-End
-  - IV. Instant Developer Experience (One-Command UX)
-  - V. Operational Excellence (Observability, Security, Simplicity)
-- Technology Constraints
-- Development Workflow & Quality Gates
-- Governance
-
-Removed sections: None.
+Added/Removed sections: None.
 
 Templates requiring updates:
-- ✅ .specify/templates/plan-template.md — Constitution Check section to reference
-  the five principles by name (gate description updated).
-- ✅ .specify/templates/tasks-template.md — Test tasks flipped from OPTIONAL to
-  MANDATORY to align with Principle II (Test-First).
-- ✅ .specify/templates/spec-template.md — No change required (principle-agnostic).
-- ✅ .windsurf/workflows/speckit.*.md — Read-only scan; no stale references found.
+- ✅ .specify/templates/plan-template.md — No change required (gate references unchanged).
+- ✅ .specify/templates/tasks-template.md — No change required.
+- ✅ .specify/templates/spec-template.md — No change required.
+- ✅ .windsurf/workflows/speckit.*.md — Read-only scan; no stale references.
 
-Follow-up TODOs:
-- TODO(README.md): Principle IV requires a quickstart README exercised by CI.
-  Defer to the bootstrap feature handled by /speckit.specify + /speckit.plan.
-- TODO(CONTRIBUTING.md): Optional, not blocking ratification.
+Affected in-flight features:
+- 006-ux-redesign: clears CRITICAL findings C1 (textarea overlay) and C2
+  (localStorage appearance prefs) from the analyze report; plan.md Complexity
+  Tracking deviation now codified at the constitution level.
+
+Prior history:
+- 1.0.0 (2026-05-28): MAJOR — initial ratification of all five principles,
+  Technology Constraints, Development Workflow, and Governance.
 -->
 
 # Pub/Sub Dashboard Constitution
@@ -114,10 +116,15 @@ Three sub-disciplines, all non-negotiable:
   Content-Security-Policy MUST be served. Outbound requests are limited
   to Google Cloud APIs. No analytics or telemetry of any kind.
 
-- **Simplicity & YAGNI**: No database. No remote state. User preferences
-  MUST be stored in a single JSON file under `~/.config/pubsub-dashboard/`.
-  Adding a new runtime dependency requires a written justification in the
-  PR description, including an evaluation of at least one alternative.
+- **Simplicity & YAGNI**: No database. No remote state. **Server/CLI
+  preferences** (e.g., preferred port, default verbosity) MUST be stored in a
+  single JSON file under `~/.config/pubsub-dashboard/`. **Client-only UI
+  presentation preferences** (theme, density, accent, workspace layout) MAY
+  instead use browser `localStorage`, since they are per-browser presentation
+  state with no server authority; such reads MUST be validated through a `zod`
+  schema with safe fallbacks. Adding a new runtime dependency requires a written
+  justification in the PR description, including an evaluation of at least one
+  alternative.
 
 **Rationale**: A local dev tool earns trust by being boring, transparent,
 and inspectable. Each sub-discipline guards a different failure mode:
@@ -134,7 +141,11 @@ a constitutional amendment (see Governance):
 - **Server**: Hono. Serves both the JSON API and the static client bundle.
 - **Client**: React 18+, built with Vite, served as static assets by Hono.
 - **UI primitives**: Tailwind CSS, shadcn/ui, Lucide icons.
-- **JSON editor**: Monaco or CodeMirror 6 (one, not both).
+- **JSON editor**: When a full code-editing surface is required, Monaco or
+  CodeMirror 6 (one, not both). A lightweight, **display-only** syntax-highlight
+  overlay over a native `<textarea>` is permitted where it never alters the
+  bytes submitted (e.g., the publish composer), to protect the cold-start and
+  bundle budgets without a heavy editor dependency.
 - **Pub/Sub client**: `@google-cloud/pubsub` (the official Google SDK) is
   the ONLY supported Pub/Sub client.
 - **Validation**: `zod` for all API and config schemas.
@@ -207,4 +218,4 @@ It is the source of truth for what "done" means in this project.
 - Reviewers MUST verify that PRs do not introduce constitution violations
   silently.
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-28 | **Last Amended**: 2026-05-28
+**Version**: 1.1.0 | **Ratified**: 2026-05-28 | **Last Amended**: 2026-06-01

@@ -1,15 +1,20 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { Check, Copy, Download, Trash } from 'lucide-react';
 import { useResourceContext } from '../lib/resourceContext.js';
 import { useComposeDraft } from '../lib/composeDraft.js';
 import { copyPayloadFromMessage } from '../lib/composeDraft.js';
 import { ackMessages, pullMessages } from '../lib/messaging.js';
 import { tryPrettyPrintJson } from '../lib/jsonFormat.js';
+import { HighlightedJson } from './HighlightedJson.js';
+import { flashStatus } from '../lib/statusFlash.js';
 import {
   receivedMessagesReducer,
   initialReceivedMessagesState,
   type DisplayedMessage,
 } from '../lib/receivedMessages.js';
+
+/** Auto-poll cadence (FR-020 / SC-006). */
+const AUTO_POLL_INTERVAL_MS = 2500;
 
 export interface MessageReceiverProps {
   projectId: string;
@@ -38,10 +43,11 @@ function PayloadView({ message }: { message: DisplayedMessage }): JSX.Element {
       </div>
     );
   }
+  // R11: JSON-highlighted payload, display-only, reusing the composer tokenizer.
   const { formatted } = tryPrettyPrintJson(message.data);
   return (
     <pre className="overflow-x-auto whitespace-pre-wrap break-words rounded bg-slate-50 p-2 font-mono text-[11px] text-slate-700 dark:bg-slate-700 dark:text-slate-300">
-      {formatted}
+      <HighlightedJson text={formatted} />
     </pre>
   );
 }
@@ -54,19 +60,38 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
   const [messages, dispatch] = useReducer(receivedMessagesReducer, initialReceivedMessagesState);
   const [pullStatus, setPullStatus] = useState<PullStatus>({ status: 'idle' });
   const [ackHint, setAckHint] = useState<string | null>(null);
+  // US7: opt-in auto-poll. Off by default (no invisible polling — FR-021/SC-006).
+  const [auto, setAuto] = useState(false);
+  // Always-fresh reference to onPull so the interval never restarts per render.
+  const onPullRef = useRef<() => Promise<void>>(async () => {});
 
   // FR-023: the running list belongs to a subscription — when the active
-  // subscription changes, clear it so pulls never mix targets.
+  // subscription changes, clear it, stop auto-polling, and reset (R4/SC-006) so
+  // pulls never mix targets and Auto never silently follows a new subscription.
   useEffect(() => {
     dispatch({ type: 'CLEAR' });
     setPullStatus({ status: 'idle' });
     setAckHint(null);
+    setAuto(false);
   }, [subscriptionName]);
+
+  // US7 (R1/R5/R6): while Auto is on for an active subscription, pull every
+  // 2.5 s. The interval is torn down on toggle-off, subscription change, and
+  // unmount, so there is never background polling without the visible indicator.
+  useEffect(() => {
+    if (!auto || !subscriptionName) return;
+    const id = setInterval(() => {
+      void onPullRef.current();
+    }, AUTO_POLL_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [auto, subscriptionName]);
 
   if (!subscriptionName) {
     return (
-      <div className="rounded border border-dashed border-slate-300 bg-slate-50 px-3 py-4 text-center text-xs text-slate-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-400">
-        Select a subscription to pull messages.
+      <div className="panel ticks flex min-h-[150px] items-center justify-center px-3 py-4 text-center text-xs text-fg3">
+        <span className="flex items-center gap-2">
+          <Download className="h-4 w-4 opacity-50" /> Select a subscription to pull messages.
+        </span>
       </div>
     );
   }
@@ -91,8 +116,12 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
         message: e.message ?? 'Failed to pull messages.',
         code: e.code,
       });
+      // R7: a failed pull pauses auto-polling pending user action (no infinite retry).
+      setAuto(false);
     }
   }
+  // Keep the interval's pull reference current without restarting the timer.
+  onPullRef.current = onPull;
 
   async function onAck(ackId: string): Promise<void> {
     setAckHint(null);
@@ -110,16 +139,14 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
   }
 
   return (
-    <div className="rounded border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800">
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+    <div className="panel ticks rise flex min-h-0 flex-col p-3">
+      <div className="mb-2 flex flex-none items-center justify-between">
+        <h3 className="flex items-center gap-2 text-[var(--fs-label)] font-semibold uppercase tracking-[0.12em] text-fg2">
           Receive
+          <span className="font-jp text-[10px] normal-case tracking-normal text-magenta">受信</span>
         </h3>
         <div className="flex items-center gap-2">
-          <span
-            className="font-mono text-[11px] text-slate-400 dark:text-slate-500"
-            title={subscriptionName}
-          >
+          <span className="font-mono text-[11px] text-fg3" title={subscriptionName}>
             {subscriptionId}
           </span>
           <button
@@ -131,6 +158,25 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
           >
             <Download className="h-3 w-3" />
             {pullStatus.status === 'pulling' ? 'Pulling…' : 'Pull'}
+          </button>
+          {/* US7: opt-in auto-poll toggle with a visible pulsing indicator. */}
+          <button
+            type="button"
+            onClick={() => setAuto((v) => !v)}
+            aria-pressed={auto}
+            data-testid="auto-toggle"
+            className={`flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium ${
+              auto ? 'bg-magenta/20 text-magenta' : 'text-fg3 hover:text-fg1'
+            }`}
+          >
+            {auto && (
+              <span
+                data-testid="auto-indicator"
+                aria-label="Auto-polling active"
+                className="h-2 w-2 animate-pulse rounded-full bg-magenta"
+              />
+            )}
+            Auto
           </button>
           {messages.items.length > 0 && (
             <button
@@ -172,7 +218,7 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
       )}
       {ackHint && <p className="mb-2 text-xs text-amber-600">{ackHint}</p>}
 
-      <ul className="space-y-2">
+      <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto">
         {messages.items.map((m, i) => (
           <li
             key={`${m.messageId}-${i}`}
@@ -202,7 +248,10 @@ export function MessageReceiver({ projectId }: MessageReceiverProps): JSX.Elemen
                 disabled={m.dataEncoding === 'base64'}
                 onClick={() => {
                   const payload = copyPayloadFromMessage(m);
-                  if (payload) composeDispatch({ type: 'COPY_TO_PUBLISH', payload });
+                  if (payload) {
+                    composeDispatch({ type: 'COPY_TO_PUBLISH', payload });
+                    flashStatus('Copied to composer');
+                  }
                 }}
                 aria-label="Copy to publish"
                 className="flex items-center gap-1 text-[11px] text-slate-500 underline hover:text-slate-700 disabled:cursor-not-allowed disabled:no-underline disabled:opacity-40"

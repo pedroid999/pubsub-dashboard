@@ -97,5 +97,10 @@ describe('App (composition)', () => {
     await waitFor(() => {
       expect(screen.getByTestId('topic-search')).toBeTruthy();
     });
+
+    // US1: editors are always visible alongside the resource rail (no topic /
+    // subscription selected yet → both panels show their placeholders).
+    expect(screen.getByText(/Select a topic to publish a message/)).toBeTruthy();
+    expect(screen.getByText(/Select a subscription to pull messages/)).toBeTruthy();
   });
 });

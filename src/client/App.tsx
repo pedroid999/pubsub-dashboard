@@ -1,4 +1,4 @@
-import { SessionBadge } from './components/SessionBadge.js';
+import { ChevronLeft } from 'lucide-react';
 import { DiagnosticsPanel } from './components/DiagnosticsPanel.js';
 import { ResourceContextProvider } from './components/ResourceContextProvider.js';
 import { useResourceContext } from './lib/resourceContext.js';
@@ -9,7 +9,9 @@ import { MessageReceiver } from './components/MessageReceiver.js';
 import { ComposeDraftProvider } from './components/ComposeDraftProvider.js';
 import { ContextIndicator } from './components/ContextIndicator.js';
 import { ThemeProvider } from './lib/theme.js';
-import { ThemeToggle } from './components/ThemeToggle.js';
+import { CommandPalette } from './components/CommandPalette.js';
+import { AppearanceProvider, useAppearance } from './lib/appearance.js';
+import { Header } from './components/Header.js';
 import { ProjectsResponseSchema } from '../server/schemas/pubsub.js';
 import { apiGet } from './lib/api.js';
 
@@ -18,70 +20,121 @@ async function loadProjects() {
   return data.projects;
 }
 
+function SectionLabel({ children }: { children: React.ReactNode }): JSX.Element {
+  return (
+    <h2 className="mb-2 text-[var(--fs-label)] font-semibold uppercase tracking-[0.12em] text-fg2">
+      {children}
+    </h2>
+  );
+}
+
 function AppContent(): JSX.Element {
   const { state, dispatch } = useResourceContext();
 
-  return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      {!state.activeProjectId ? (
-        <>
-          <section className="mb-8">
-            <h2 className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-              GCP Projects
-            </h2>
-            <ProjectBrowser
-              loadProjects={loadProjects}
-              onSelectProject={(projectId) => dispatch({ type: 'SELECT_PROJECT', projectId })}
-            />
-          </section>
-          <section className="mt-8">
-            <h2 className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-              Diagnostics
-            </h2>
-            <DiagnosticsPanel />
-          </section>
-        </>
-      ) : (
-        <section>
-          <button
-            type="button"
-            onClick={() => dispatch({ type: 'NAVIGATE_BACK' })}
-            className="mb-4 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-          >
-            ← Projects
-          </button>
-          <h2 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
-            Project: <span className="font-mono font-medium">{state.activeProjectId}</span>
-          </h2>
-          <ResourceBrowser projectId={state.activeProjectId} />
-          <ComposeDraftProvider>
-            <div className="mt-6 grid grid-cols-2 gap-6">
-              <MessagePublisher projectId={state.activeProjectId} />
-              <MessageReceiver projectId={state.activeProjectId} />
-            </div>
-          </ComposeDraftProvider>
+  if (!state.activeProjectId) {
+    return (
+      <main className="mx-auto w-full max-w-4xl flex-1 overflow-auto px-4 py-8">
+        <section className="mb-8">
+          <SectionLabel>GCP Projects</SectionLabel>
+          <ProjectBrowser
+            loadProjects={loadProjects}
+            onSelectProject={(projectId) => dispatch({ type: 'SELECT_PROJECT', projectId })}
+          />
         </section>
-      )}
+        <section className="mt-8">
+          <SectionLabel>Diagnostics</SectionLabel>
+          <DiagnosticsPanel />
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex min-h-0 flex-1 flex-col px-4 py-3">
+      <button
+        type="button"
+        onClick={() => dispatch({ type: 'NAVIGATE_BACK' })}
+        className="mb-2 flex flex-none items-center gap-1 text-[var(--fs-base)] text-fg2 hover:text-accent"
+      >
+        <ChevronLeft className="h-4 w-4" /> Projects
+      </button>
+      <ComposeDraftProvider>
+        <WorkspaceBody projectId={state.activeProjectId} />
+      </ComposeDraftProvider>
     </main>
+  );
+}
+
+/**
+ * Workspace body — the publisher/receiver/resources surface, reflowed by the
+ * persisted layout (US3). Selection (resourceContext) and the compose draft
+ * (ComposeDraftProvider) live in providers above this component, so switching
+ * layout never loses them (SC-003).
+ *
+ * - **Rail** (default): resources rail (topics over subs) beside publisher | receiver.
+ * - **Triptych**: three equal columns — tabbed resources | publisher | receiver.
+ * - **Console**: resources across the top, publisher | receiver beneath.
+ */
+export function WorkspaceBody({ projectId }: { projectId: string }): JSX.Element {
+  const { prefs } = useAppearance();
+  const publisher = <MessagePublisher projectId={projectId} />;
+  const receiver = <MessageReceiver projectId={projectId} />;
+
+  if (prefs.layout === 'triptych') {
+    return (
+      <div data-layout="triptych" className="grid min-h-0 flex-1 grid-cols-1 gap-3 xl:grid-cols-3">
+        <ResourceBrowser projectId={projectId} orientation="tabs" />
+        {publisher}
+        {receiver}
+      </div>
+    );
+  }
+
+  if (prefs.layout === 'console') {
+    return (
+      <div
+        data-layout="console"
+        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-3"
+      >
+        <ResourceBrowser projectId={projectId} orientation="split" />
+        <div className="grid min-h-0 gap-3 xl:grid-cols-2">
+          {publisher}
+          {receiver}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      data-layout="rail"
+      className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)]"
+    >
+      <ResourceBrowser projectId={projectId} orientation="stacked" />
+      <div className="grid min-h-0 gap-3 xl:grid-cols-2">
+        {publisher}
+        {receiver}
+      </div>
+    </div>
   );
 }
 
 export function App(): JSX.Element {
   return (
     <ThemeProvider>
-      <ResourceContextProvider>
-        <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100">
-          <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 dark:border-slate-700 dark:bg-slate-800">
-            <h1 className="text-base font-semibold">Pub/Sub Dashboard</h1>
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <SessionBadge />
-            </div>
-          </header>
-          <ContextIndicator />
-          <AppContent />
-        </div>
-      </ResourceContextProvider>
+      <AppearanceProvider>
+        <ResourceContextProvider>
+          <div className="flex h-screen flex-col overflow-hidden bg-bg0 font-ui text-fg0">
+            <Header loadProjects={loadProjects} />
+            <ContextIndicator />
+            <AppContent />
+            {/* ⌘K navigation-only command palette (US2). */}
+            <CommandPalette />
+            {/* Fixed scanline/grain ambience (FR-014; hidden under reduced motion). */}
+            <div className="fx-overlay" aria-hidden="true" />
+          </div>
+        </ResourceContextProvider>
+      </AppearanceProvider>
     </ThemeProvider>
   );
 }
