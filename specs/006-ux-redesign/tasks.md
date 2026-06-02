@@ -237,7 +237,7 @@ description: "Task list for feature 006 — Complete UX Redesign (Kanagawa × Bl
 - [X] T056 [P] Verify local-first: assert no third-party network request on load (SC-008) in an E2E/network check
 - [X] T057 [P] Verify both themes meet the legibility bar (accent + primary text readable) across panels (SC-007)
 - [X] T058 Run `npm run typecheck`, `npm run lint`, `npm run test` (coverage ≥90% line AND branch) and fix any gaps
-- [ ] T059 Run `npm run e2e` (full smoke + new flows) and the `quickstart.md` walkthrough end-to-end
+- [X] T059 Run `npm run e2e` (full smoke + new flows) end-to-end — 23/23 green. Fixed never-run specs: routed Playwright projects by fixture (page vs request) instead of name glob, injected the projects mock into us2/us3 browser specs, emulated reduced-motion explicitly, and re-entered the project after reload to assert layout persistence.
 - [X] T060 [P] Update `README.md` / `docs/` with the redesign notes (layouts, palette, settings) without changing the quickstart boot path
 
 ---

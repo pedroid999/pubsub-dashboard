@@ -45,6 +45,10 @@ test.afterAll(async () => {
 test.use({ reducedMotion: 'reduce' });
 
 test('reduced motion disables the scanline/grain overlay', async ({ page }) => {
+  // Emulate the preference explicitly on the page (more reliable than relying
+  // solely on the file-scope test.use, which is not honored for the CSS media
+  // query here) so the `.fx-overlay { display: none }` reduced-motion rule wins.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   const overlay = page.locator('.fx-overlay');
   await expect(overlay).toHaveCSS('display', 'none');

@@ -26,6 +26,22 @@ const mockAuth = {
   getCredentials: async () => ({ client_email: 'svc@palette.test' }),
 };
 
+// Feed the ProjectBrowser a project to pick (topics/subs come from the in-memory
+// Pub/Sub seam below). Without this, /api/projects hits the real
+// cloudresourcemanager and the list is empty, so project-item-e2e-proj never
+// renders.
+const mockFetch = async (url: string | URL | Request): Promise<Response> => {
+  if (String(url).includes('cloudresourcemanager')) {
+    return new Response(
+      JSON.stringify({
+        projects: [{ projectId: 'e2e-proj', displayName: 'E2E Project', state: 'ACTIVE' }],
+      }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    );
+  }
+  return new Response('{}', { status: 404 });
+};
+
 let server: RunningServer;
 
 test.beforeAll(async () => {
@@ -35,6 +51,7 @@ test.beforeAll(async () => {
     clientDir: 'dist/client',
     getSession: async (traceId) => SessionSchema.parse({ ...session, lastTraceId: traceId }),
     auth: mockAuth,
+    fetchImpl: mockFetch,
     createPubSubClient: createInMemoryPubSubClient(),
   });
 });
@@ -68,7 +85,11 @@ test('filtering and Enter activate a topic (navigation-only)', async ({ page }) 
   const input = page.getByTestId('command-palette-input');
   await input.fill('demo');
 
-  // First matching row is a topic; activate it.
+  // First matching row is a topic; wait for it to load (topics arrive async)
+  // before activating with Enter.
+  await expect(
+    page.locator('[data-testid^="palette-entry-"][data-testid*="/topics/"]').first(),
+  ).toBeVisible();
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('command-palette')).toBeHidden();
 
